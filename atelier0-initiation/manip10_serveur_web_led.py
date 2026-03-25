@@ -138,20 +138,24 @@ while True:
     # Exemple : "GET /?led=on HTTP/1.1\r\nHost: 192.168.4.1\r\n..."
     requete = connexion.recv(1024).decode()
 
+    # On ne lit que la PREMIÈRE ligne : "GET /?led=off HTTP/1.1"
+    # (les autres lignes sont les headers HTTP — ils peuvent contenir
+    # "?led=on" dans le Referer, ce qui faussait la détection)
+    premiere_ligne = requete.split('\r\n')[0]
+
     # Ignorer toutes les requêtes automatiques du navigateur
     # (favicon, apple-touch-icon, robots.txt, etc.)
-    # "GET / " avec espace = racine exacte   "GET /?" = racine avec paramètre
-    if "GET / " not in requete and "GET /?" not in requete:
+    if "GET / " not in premiere_ligne and "GET /?" not in premiere_ligne:
         connexion.send("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
         connexion.close()
         continue
 
-    # Analyser la requête pour savoir quelle commande envoyer à la LED
-    if "?led=on" in requete:
+    # Analyser la commande sur la première ligne uniquement
+    if "?led=on" in premiere_ligne:
         led.on()
         led_allumee = True
         print("  → LED allumée")
-    elif "?led=off" in requete:
+    elif "?led=off" in premiere_ligne:
         led.off()
         led_allumee = False
         print("  → LED éteinte")

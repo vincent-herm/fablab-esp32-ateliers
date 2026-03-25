@@ -71,16 +71,20 @@ while True:
 
     # Ignorer favicon, apple-touch-icon, robots.txt, etc.
     # "GET / " (avec espace) = racine exacte  |  "GET /?" = racine + paramètre
-    if "GET / " not in request and "GET /?" not in request:
+    # Ne lire que la première ligne (l'URL) — les headers comme Referer
+    # peuvent contenir "?led=on" et fausser la détection
+    premiere_ligne = request.split('\r\n')[0]
+
+    if "GET / " not in premiere_ligne and "GET /?" not in premiere_ligne:
         conn.send("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
         conn.close()
         continue
 
     # Lire la commande dans l'URL (?led=on ou ?led=off)
-    if "?led=on" in request:
+    if "?led=on" in premiere_ligne:
         led.on()
         led_allumee = True
-    elif "?led=off" in request:
+    elif "?led=off" in premiere_ligne:
         led.off()
         led_allumee = False
 
