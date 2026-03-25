@@ -54,6 +54,7 @@ def page_html(led_allumee):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <title>Fablab Polinno — LED</title>
   <style>
     body {{
@@ -132,6 +133,13 @@ while True:
     # Lire la requête HTTP envoyée par le navigateur
     # Exemple de requête : "GET /?led=on HTTP/1.1\r\nHost: ..."
     requete = connexion.recv(1024).decode()
+
+    # Ignorer les requêtes automatiques du navigateur (favicon, etc.)
+    # On ne répond qu'aux requêtes vers / ou /?...
+    if "GET /" not in requete:
+        connexion.send("HTTP/1.1 404 Not Found\r\n\r\n")
+        connexion.close()
+        continue
 
     # Analyser la requête pour savoir quelle commande envoyer à la LED
     if "?led=on" in requete:

@@ -36,6 +36,7 @@ def page_html(led_allumee):
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <title>ESP32 Fablab</title>
   <style>
     body {{ font-family: sans-serif; text-align: center; background: #111; color: #eee; padding: 40px; }}
@@ -65,6 +66,13 @@ print("Serveur démarré — http://192.168.4.1")
 while True:
     conn, addr = s.accept()
     request = conn.recv(1024).decode()
+
+    # Ignorer les requêtes automatiques du navigateur (favicon, etc.)
+    # On ne répond qu'aux requêtes vers / ou /?...
+    if "GET /" not in request:
+        conn.send("HTTP/1.1 404 Not Found\r\n\r\n")
+        conn.close()
+        continue
 
     # Lire la commande dans l'URL (?led=on ou ?led=off)
     if "?led=on" in request:
