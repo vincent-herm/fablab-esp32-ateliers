@@ -124,6 +124,10 @@ print("Serveur web démarré → http://192.168.4.1")
 print("Appuyer Ctrl+C pour arrêter")
 print()
 
+# Variable d'état : on suit l'état de la LED dans le programme
+# (plus fiable que de relire led.value() qui peut varier selon les cartes)
+led_allumee = False
+
 # Boucle principale : attendre et traiter les requêtes HTTP
 while True:
     # Attendre qu'un navigateur se connecte (bloquant)
@@ -131,26 +135,29 @@ while True:
     print(f"Connexion depuis {adresse[0]}")
 
     # Lire la requête HTTP envoyée par le navigateur
-    # Exemple de requête : "GET /?led=on HTTP/1.1\r\nHost: ..."
+    # Exemple : "GET /?led=on HTTP/1.1\r\nHost: 192.168.4.1\r\n..."
     requete = connexion.recv(1024).decode()
 
-    # Ignorer les requêtes automatiques du navigateur (favicon, etc.)
-    # On ne répond qu'aux requêtes vers / ou /?...
-    if "GET /" not in requete:
-        connexion.send("HTTP/1.1 404 Not Found\r\n\r\n")
+    # Ignorer toutes les requêtes automatiques du navigateur
+    # (favicon, apple-touch-icon, robots.txt, etc.)
+    # "GET / " avec espace = racine exacte   "GET /?" = racine avec paramètre
+    if "GET / " not in requete and "GET /?" not in requete:
+        connexion.send("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
         connexion.close()
         continue
 
     # Analyser la requête pour savoir quelle commande envoyer à la LED
     if "?led=on" in requete:
         led.on()
+        led_allumee = True
         print("  → LED allumée")
     elif "?led=off" in requete:
         led.off()
+        led_allumee = False
         print("  → LED éteinte")
 
     # Générer et envoyer la page HTML en réponse
-    html = page_html(led.value() == 1)
+    html = page_html(led_allumee)
     connexion.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n")
     connexion.send(html)
     connexion.close()    # fermer la connexion après chaque requête

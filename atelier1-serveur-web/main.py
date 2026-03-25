@@ -63,25 +63,29 @@ s.bind(("", 80))
 s.listen(5)
 print("Serveur démarré — http://192.168.4.1")
 
+led_allumee = False
+
 while True:
     conn, addr = s.accept()
     request = conn.recv(1024).decode()
 
-    # Ignorer les requêtes automatiques du navigateur (favicon, etc.)
-    # On ne répond qu'aux requêtes vers / ou /?...
-    if "GET /" not in request:
-        conn.send("HTTP/1.1 404 Not Found\r\n\r\n")
+    # Ignorer favicon, apple-touch-icon, robots.txt, etc.
+    # "GET / " (avec espace) = racine exacte  |  "GET /?" = racine + paramètre
+    if "GET / " not in request and "GET /?" not in request:
+        conn.send("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
         conn.close()
         continue
 
     # Lire la commande dans l'URL (?led=on ou ?led=off)
     if "?led=on" in request:
         led.on()
+        led_allumee = True
     elif "?led=off" in request:
         led.off()
+        led_allumee = False
 
     # Envoyer la page
-    html = page_html(led.value() == 1)
+    html = page_html(led_allumee)
     conn.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n")
     conn.send(html)
     conn.close()
