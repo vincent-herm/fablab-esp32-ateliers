@@ -160,19 +160,37 @@ def page_html(led_allumee, luminosite):
     .slider-row {{
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 6px;
     }}
     .slider-row input {{
       flex: 1;
       accent-color: #f59e0b;
-      height: 6px;
+      height: 36px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+    }}
+    .slider-row input::-webkit-slider-runnable-track {{
+      height: 12px;
+      background: #334155;
+      border-radius: 6px;
+    }}
+    .slider-row input::-webkit-slider-thumb {{
+      -webkit-appearance: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #f59e0b;
+      margin-top: -16px;
+      box-shadow: 0 2px 8px #0008;
     }}
     .slider-val {{
-      font-size: 1rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #f59e0b;
-      width: 42px;
+      width: 52px;
       text-align: right;
     }}
     .slider-labels {{
