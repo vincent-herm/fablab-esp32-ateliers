@@ -274,6 +274,7 @@ def page_html(led_allumee, luminosite):
 
 # --- Serveur web ---
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # libère le port si déjà utilisé
 s.bind(("", 80))
 s.listen(5)
 print("Serveur démarré — http://192.168.4.1")
