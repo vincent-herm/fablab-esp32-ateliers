@@ -316,7 +316,9 @@ while True:
     elif "GET / " in ligne:
         html = page_html(led_allumee, luminosite)
         conn.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n")
-        conn.send(html)
+        # Envoi par morceaux de 512 octets (la page est trop grande pour un seul send)
+        for i in range(0, len(html), 512):
+            conn.send(html[i:i + 512])
 
     else:
         conn.send("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
