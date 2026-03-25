@@ -42,8 +42,20 @@ print("Adresse IP  :", ap.ifconfig()[0])
 
 
 def pct_to_duty(pct):
-    """Convertit un pourcentage (0-100) en valeur PWM (0-1023)."""
-    return int(max(0, min(100, pct)) * 1023 / 100)
+    """Convertit un pourcentage (0-100) en valeur PWM (0-1023) avec correction gamma.
+
+    Sans correction : à 50% le slider la LED paraît déjà très lumineuse
+    car l'œil humain perçoit la luminosité de façon logarithmique.
+    La correction gamma 2.2 rend la progression du slider linéaire
+    pour la perception visuelle.
+
+    Formule : duty = (pct / 100) ^ 2.2 × 1023
+    """
+    if pct <= 0:
+        return 0
+    if pct >= 100:
+        return 1023
+    return int((pct / 100) ** 2 * 1023)
 
 
 def get_temp():
