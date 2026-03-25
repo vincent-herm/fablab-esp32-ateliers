@@ -48,8 +48,6 @@ def page_html(led_allumee):
     """Génère la page HTML en fonction de l'état de la LED."""
     etat  = "ALLUMÉE" if led_allumee else "ÉTEINTE"
     color = "#22c55e"  if led_allumee else "#ef4444"    # vert si allumée, rouge si éteinte
-    desactiver_on  = "disabled" if led_allumee     else ""   # griser le bouton déjà actif
-    desactiver_off = "disabled" if not led_allumee else ""
 
     return f"""<!DOCTYPE html>
 <html lang="fr">
@@ -91,7 +89,6 @@ def page_html(led_allumee):
     }}
     .on  {{ background: #22c55e; color: #fff; }}
     .off {{ background: #ef4444; color: #fff; }}
-    .btn:disabled {{ opacity: 0.3; cursor: default; }}
     .pied {{ margin-top: 48px; color: #555; font-size: 0.85rem; }}
   </style>
 </head>
@@ -103,11 +100,10 @@ def page_html(led_allumee):
 
   <br>
 
-  <!-- Formulaire GET : les boutons envoient ?led=on ou ?led=off dans l'URL -->
-  <form method="GET">
-    <button class="btn on"  name="led" value="on"  {desactiver_on} >Allumer</button>
-    <button class="btn off" name="led" value="off" {desactiver_off}>Éteindre</button>
-  </form>
+  <!-- Liens directs : chaque lien envoie une URL fixe et non ambiguë -->
+  <!-- (évite le bug des navigateurs mobiles qui accumulent les paramètres) -->
+  <a href="/?led=on"  class="btn on" >Allumer</a>
+  <a href="/?led=off" class="btn off">Éteindre</a>
 
   <p class="pied">ESP32 · MicroPython · Fablab Ardèche</p>
 </body>

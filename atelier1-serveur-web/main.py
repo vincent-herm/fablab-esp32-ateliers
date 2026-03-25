@@ -31,8 +31,6 @@ print("Adresse IP :", ap.ifconfig()[0])
 def page_html(led_allumee):
     etat  = "ON" if led_allumee else "OFF"
     color = "#22c55e" if led_allumee else "#ef4444"
-    btn_on  = "disabled" if led_allumee else ""
-    btn_off = "disabled" if not led_allumee else ""
     return f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -44,20 +42,17 @@ def page_html(led_allumee):
     h1   {{ font-size: 2rem; margin-bottom: 8px; }}
     .etat {{ font-size: 1.5rem; font-weight: bold; color: {color}; margin: 24px 0; }}
     .btn  {{ display: inline-block; padding: 14px 32px; margin: 8px;
-             font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; }}
+             font-size: 1.1rem; text-decoration: none; border-radius: 8px; }}
     .on   {{ background: #22c55e; color: #fff; }}
     .off  {{ background: #ef4444; color: #fff; }}
-    .btn:disabled {{ opacity: 0.4; cursor: default; }}
   </style>
 </head>
 <body>
   <h1>💡 Contrôle LED</h1>
   <p>ESP32 Fablab Ardèche</p>
   <div class="etat">LED : {etat}</div>
-  <form method="GET">
-    <button class="btn on"  name="led" value="on"  {btn_on} >Allumer</button>
-    <button class="btn off" name="led" value="off" {btn_off}>Éteindre</button>
-  </form>
+  <a href="/?led=on"  class="btn on" >Allumer</a>
+  <a href="/?led=off" class="btn off">Éteindre</a>
 </body>
 </html>"""
 
