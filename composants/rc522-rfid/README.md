@@ -25,15 +25,9 @@ Lecteur de badges sans contact 13,56 MHz (Mifare), interface SPI.
 
 ## Installation de la bibliothèque
 
-La bibliothèque `mfrc522` s'installe une seule fois :
+Copier le fichier `mfrc522.py` sur l'ESP32 via Thonny : **clic droit → Upload to /**
 
-**Dans Thonny** : Outils → Gérer les paquets → chercher `mfrc522` → Installer
-
-**Ou dans le Shell** :
-```python
-import mip
-mip.install("mfrc522")
-```
+Le fichier est inclus dans ce dossier — pas besoin de le télécharger séparément.
 
 ---
 

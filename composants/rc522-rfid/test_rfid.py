@@ -12,8 +12,8 @@
 #   ⚠ JAMAIS brancher le RC522 en 5V — il grille !
 #
 # Installation de la bibliothèque (une seule fois) :
-#   Dans Thonny → Outils → Gérer les paquets → chercher "mfrc522" → Installer
-#   Ou dans le Shell : import mip; mip.install("mfrc522")
+#   Copier mfrc522.py sur l'ESP32 via Thonny (clic droit → Upload to /)
+#   Le fichier est dans le même dossier que ce script.
 # -----------------------------------------------------------------------
 
 from machine import Pin, SPI
@@ -24,7 +24,7 @@ try:
     from mfrc522 import MFRC522
 except ImportError:
     print("Bibliothèque mfrc522 non installée !")
-    print("Dans Thonny : Outils → Gérer les paquets → mfrc522")
+    print("Copier mfrc522.py sur l'ESP32 via Thonny (clic droit → Upload to /)")
     raise SystemExit
 
 # Initialisation SPI + lecteur RFID
