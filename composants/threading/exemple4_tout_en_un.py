@@ -27,11 +27,14 @@ led    = PWM(Pin(2), freq=1000)
 led.duty(0)
 
 # --- Données partagées entre les 2 cœurs ---
+import gc
 donnees = {
     "temperature": 0.0,
     "nb_mesures": 0,
     "nb_appuis": 0,
-    "luminosite": 0,
+    "uptime_s": 0,
+    "ram_libre": 0,
+    "ram_totale": 0,
 }
 
 # =====================================================================
@@ -40,7 +43,8 @@ donnees = {
 def tache_capteur_et_led():
     lum = 0
     sens = 5       # pas de montée (+5) ou descente (-5)
-    dernier_temp = ticks_ms()
+    dernier_mesure = ticks_ms()
+    t0 = ticks_ms()
 
     while True:
         # --- LED qui respire (non bloquant) ---
@@ -52,14 +56,17 @@ def tache_capteur_et_led():
             lum = 0
             sens = 5
         led.duty(lum)
-        donnees["luminosite"] = lum
 
-        # --- Température toutes les 2 secondes ---
-        if ticks_diff(ticks_ms(), dernier_temp) > 2000:
+        # --- Mesures toutes les 2 secondes ---
+        if ticks_diff(ticks_ms(), dernier_mesure) > 2000:
             temp_f = esp32.raw_temperature()
             donnees["temperature"] = round((temp_f - 32) / 1.8, 1)
             donnees["nb_mesures"] += 1
-            dernier_temp = ticks_ms()
+            donnees["uptime_s"] = ticks_diff(ticks_ms(), t0) // 1000
+            gc.collect()
+            donnees["ram_libre"] = gc.mem_free()
+            donnees["ram_totale"] = gc.mem_free() + gc.mem_alloc()
+            dernier_mesure = ticks_ms()
 
         sleep_ms(5)
 
@@ -77,14 +84,24 @@ ap.config(essid=SSID, password=PASSWORD)
 print(f"WiFi : {SSID}  |  IP : {ap.ifconfig()[0]}")
 
 # --- Page HTML ---
+def format_uptime(s):
+    """Convertit des secondes en texte lisible."""
+    if s < 60:
+        return f"{s}s"
+    elif s < 3600:
+        return f"{s // 60}m {s % 60}s"
+    else:
+        return f"{s // 3600}h {(s % 3600) // 60}m"
+
 def page_html():
     d = donnees
+    ram_pct = int(d['ram_libre'] * 100 / d['ram_totale']) if d['ram_totale'] > 0 else 0
     return f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="2">
+  <meta http-equiv="refresh" content="3">
   <link rel="icon" href="data:,">
   <title>ESP32 Dual Core</title>
   <style>
@@ -100,14 +117,15 @@ def page_html():
     .label {{ color: #64748b; font-size: 0.6rem; text-transform: uppercase;
               letter-spacing: 1.5px; margin-bottom: 8px; }}
     .val {{ font-size: 2rem; font-weight: 800; line-height: 1; }}
+    .sm {{ font-size: 1.3rem; }}
     .cyan {{ color: #38bdf8; }}
     .green {{ color: #22c55e; }}
     .orange {{ color: #f59e0b; }}
     .violet {{ color: #a78bfa; }}
+    .rose {{ color: #f472b6; }}
     .unit {{ font-size: 0.8rem; color: #64748b; }}
     .bar {{ height: 8px; background: #334155; border-radius: 4px; margin-top: 10px; }}
-    .bar-fill {{ height: 100%; background: #f59e0b; border-radius: 4px;
-                 width: {int(d['luminosite'] * 100 / 1023)}%; }}
+    .bar-fill {{ height: 100%; border-radius: 4px; }}
     .foot {{ color: #1e293b; font-size: 0.65rem; margin-top: 20px; }}
   </style>
 </head>
@@ -120,20 +138,20 @@ def page_html():
       <div class="val cyan">{d['temperature']}<span class="unit"> °C</span></div>
     </div>
     <div class="card">
-      <div class="label">Mesures</div>
-      <div class="val violet">{d['nb_mesures']}</div>
+      <div class="label">En ligne</div>
+      <div class="val violet sm">{format_uptime(d['uptime_s'])}</div>
     </div>
     <div class="card">
       <div class="label">Appuis bouton</div>
       <div class="val green">{d['nb_appuis']}</div>
     </div>
     <div class="card">
-      <div class="label">LED</div>
-      <div class="val orange">{int(d['luminosite'] * 100 / 1023)}%</div>
+      <div class="label">Mesures</div>
+      <div class="val orange">{d['nb_mesures']}</div>
     </div>
     <div class="card wide">
-      <div class="label">Luminosité LED (PWM)</div>
-      <div class="bar"><div class="bar-fill"></div></div>
+      <div class="label">RAM libre : {d['ram_libre'] // 1024} ko / {d['ram_totale'] // 1024} ko ({ram_pct}%)</div>
+      <div class="bar"><div class="bar-fill" style="width:{ram_pct}%; background:#22c55e;"></div></div>
     </div>
   </div>
   <p class="foot">Rafraîchissement auto · 192.168.4.1</p>
