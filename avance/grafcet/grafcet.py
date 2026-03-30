@@ -38,19 +38,24 @@ class Grafcet:
         while True:
             g.franchir(T, transitions)   # 1. évolution + fronts d'étape
             g.tick(20)                   # 2. timers
-            # gerer_actions()            # 3. actions (fronts lisibles ici !)
-            # affecter_sorties()         # 4. sorties physiques
-            # lire_entrees()             # 5. capteurs/boutons
-            # g.detecter_fronts_entrees()# 6. fronts d'entrée (optionnel)
-            # calculer_transitions()     # 7. conditions
+            gerer_actions()              # 3. actions (fronts lisibles ici !)
+            affecter_sorties()           # 4. sorties physiques
+            lire_entrees()               # 5. capteurs/boutons
+            calculer_transitions()       # 6. conditions
             synchro_ms(20)
 
     Avec fronts d'entrée (optionnel) :
         g = Grafcet(nb_etapes=3, etape_initiale=0, nb_entrees=4)
 
-        # Dans lire_entrees(), remplir g.entrees[i] avec l'état des capteurs
-        # Puis g.detecter_fronts_entrees() calcule g.fm[i] et g.fd[i]
-        # Dans calculer_transitions(), utiliser g.fm[i] pour les fronts montants
+        while True:
+            g.franchir(T, transitions)   # 1. évolution + fronts d'étape
+            g.tick(20)                   # 2. timers
+            gerer_actions()              # 3. actions
+            affecter_sorties()           # 4. sorties physiques
+            lire_entrees()               # 5. capteurs/boutons
+            g.detecter_fronts_entrees()  # 6. fronts d'entrée
+            calculer_transitions()       # 7. conditions
+            synchro_ms(20)
     """
 
     def __init__(self, nb_etapes, etape_initiale=0, nb_entrees=0):

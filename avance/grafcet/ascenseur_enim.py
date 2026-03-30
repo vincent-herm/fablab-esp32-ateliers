@@ -242,16 +242,16 @@ def calculer_transitions():
 
 while True:
 
-    g.tick(20)                       # 1. Mise à jour des timers
+    g.franchir(T, transitions)       # 1. Évolution + fronts d'étape
 
-    gerer_actions()                  # 2. Calcul des actions
+    g.tick(20)                       # 2. Mise à jour des timers
 
-    affecter_sorties()               # 3. Application sur le matériel
+    gerer_actions()                  # 3. Calcul des actions
 
-    lire_entrees()                   # 4. Lecture des entrées
+    affecter_sorties()               # 4. Application sur le matériel
 
-    calculer_transitions()           # 5. Évaluation des réceptivités
+    lire_entrees()                   # 5. Lecture des entrées
 
-    g.franchir(T, transitions)       # 6. Franchissement des transitions
+    calculer_transitions()           # 6. Évaluation des réceptivités
 
     synchro_ms(20)                   # 7. Synchronisation cycle 20 ms

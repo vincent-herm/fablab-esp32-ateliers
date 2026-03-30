@@ -255,16 +255,16 @@ transitions = [False] * len(T)
 
 while True:
 
-    g.tick(20)               # 1. Mise à jour des timers (incrémente tempo des étapes actives)
+    g.franchir(T, transitions)  # 1. Évolution + fronts d'étape
 
-    gerer_actions()          # 2. Calcul des actions selon les étapes actives
+    g.tick(20)               # 2. Mise à jour des timers
 
-    affecter_sorties()       # 3. Application des actions sur les sorties physiques
+    gerer_actions()          # 3. Calcul des actions selon les étapes actives
 
-    lire_entrees()           # 4. Lecture des capteurs et boutons
+    affecter_sorties()       # 4. Application des actions sur les sorties physiques
 
-    calculer_transitions()   # 5. Évaluation des réceptivités
+    lire_entrees()           # 5. Lecture des capteurs et boutons
 
-    g.franchir(T, transitions)  # 6. Franchissement des transitions validées → mise à jour des étapes
+    calculer_transitions()   # 6. Évaluation des réceptivités
 
     synchro_ms(20)           # 7. Attente de fin de cycle (synchronisation à 20 ms)
