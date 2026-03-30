@@ -159,6 +159,7 @@ class Grafcet:
 
         # Activation de l'étape initiale : seule étape active au démarrage
         self.etapes[etape_initiale] = True
+        self.rising[etape_initiale] = True  # front montant au démarrage (actions mémorisées)
 
         # --- Fronts d'entrée ---
         # Détection des changements d'état des capteurs/boutons
