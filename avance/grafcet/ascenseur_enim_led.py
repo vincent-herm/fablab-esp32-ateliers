@@ -57,10 +57,9 @@ sortie_montee   = Pin(13, Pin.OUT)   # driver moteur / relais Montée
 sortie_descente.value(0)
 sortie_montee.value(0)
 
-# NeoPixel : position initiale de la cabine (en haut = LED 0)
+# NeoPixel éteint au démarrage
 for led in range(8):
     np[led] = (0, 0, 0)
-np[0] = (0, 50, 0)    # cabine en position haute
 np.write()
 
 
