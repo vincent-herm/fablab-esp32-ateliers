@@ -123,10 +123,10 @@ def calculer_transitions():
 # =============================================================================
 
 while True:
+    g.franchir(T, transitions)
     g.tick(20)
     gerer_actions()
     affecter_sorties()
     lire_entrees()
     calculer_transitions()
-    g.franchir(T, transitions)
     synchro_ms(20)
