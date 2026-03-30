@@ -20,7 +20,6 @@
 #   4. affecter_sorties()        → application des actions sur les sorties physiques
 #   5. lire_entrees()            → lecture des capteurs et boutons
 #   6. detecter_fronts_entrees() → détection des fronts montants/descendants d'entrée
-#                                   (optionnel, seulement si nb_entrees > 0)
 #   7. calculer_transitions()    → évaluation des conditions de transition
 #
 # NOTE : franchir() est en DÉBUT de cycle (pas en fin) pour que les fronts
@@ -32,39 +31,39 @@ class Grafcet:
     """
     Moteur d'exécution GRAFCET générique pour MicroPython.
 
-    Usage minimal :
-        g = Grafcet(nb_etapes=3, etape_initiale=0)
+    Usage sans fronts d'entrée :
+        g = Grafcet(nb_etapes=3)
 
         while True:
-            g.franchir(T, transitions)   # 1. évolution + fronts d'étape
-            g.tick(20)                   # 2. timers
-            gerer_actions()              # 3. actions (fronts lisibles ici !)
-            affecter_sorties()           # 4. sorties physiques
-            lire_entrees()               # 5. capteurs/boutons
-            calculer_transitions()       # 6. conditions
+            g.franchir(T, transitions)
+            g.tick(20)
+            gerer_actions()
+            affecter_sorties()
+            lire_entrees()
+            calculer_transitions()
             synchro_ms(20)
 
-    Avec fronts d'entrée (optionnel) :
-        g = Grafcet(nb_etapes=3, etape_initiale=0, nb_entrees=4)
+    Usage avec fronts d'entrée (nb_fronts = nombre de boutons/capteurs à surveiller) :
+        g = Grafcet(nb_etapes=3, nb_fronts=2)
 
         while True:
-            g.franchir(T, transitions)   # 1. évolution + fronts d'étape
-            g.tick(20)                   # 2. timers
-            gerer_actions()              # 3. actions
-            affecter_sorties()           # 4. sorties physiques
-            lire_entrees()               # 5. capteurs/boutons
-            g.detecter_fronts_entrees()  # 6. fronts d'entrée
-            calculer_transitions()       # 7. conditions
+            g.franchir(T, transitions)
+            g.tick(20)
+            gerer_actions()
+            affecter_sorties()
+            lire_entrees()               # → remplir g.entrees[i]
+            g.detecter_fronts_entrees()  # → calcule g.fm[i] / g.fd[i]
+            calculer_transitions()       # → utiliser g.fm[i] pour les fronts
             synchro_ms(20)
     """
 
-    def __init__(self, nb_etapes, etape_initiale=0, nb_entrees=0):
+    def __init__(self, nb_etapes, etape_initiale=0, nb_fronts=0):
         """
         Initialise le GRAFCET.
 
         :param nb_etapes:      nombre total d'étapes (taille des tableaux internes)
+        :param nb_fronts:     nombre d'entrées à surveiller pour les fronts
         :param etape_initiale: indice de l'étape active au démarrage (défaut : 0)
-        :param nb_entrees:     nombre d'entrées à surveiller pour les fronts (défaut : 0 = désactivé)
         """
 
         # --- Tableau d'activation des étapes ---
@@ -100,16 +99,15 @@ class Grafcet:
         # Activation de l'étape initiale : seule étape active au démarrage
         self.etapes[etape_initiale] = True
 
-        # --- Fronts d'entrée (optionnel) ---
-        # Si nb_entrees > 0, détection des changements d'état des capteurs/boutons
+        # --- Fronts d'entrée ---
+        # Détection des changements d'état des capteurs/boutons
         # fm[i] = front montant d'entrée i (True pendant 1 cycle quand entrée passe False→True)
         # fd[i] = front descendant d'entrée i (True pendant 1 cycle quand entrée passe True→False)
-        self.nb_entrees = nb_entrees
-        if nb_entrees > 0:
-            self.entrees      = [False] * nb_entrees  # état actuel (à remplir dans lire_entrees())
-            self.entrees_prec = [False] * nb_entrees  # état du cycle précédent
-            self.fm           = [False] * nb_entrees  # fronts montants d'entrée
-            self.fd           = [False] * nb_entrees  # fronts descendants d'entrée
+        self.nb_fronts   = nb_fronts
+        self.entrees      = [False] * nb_fronts  # état actuel (à remplir dans lire_entrees())
+        self.entrees_prec = [False] * nb_fronts  # état du cycle précédent
+        self.fm           = [False] * nb_fronts  # fronts montants d'entrée
+        self.fd           = [False] * nb_fronts  # fronts descendants d'entrée
 
     # -------------------------------------------------------------------------
 
@@ -193,12 +191,8 @@ class Grafcet:
           - self.fm[i] = True si l'entrée i vient de passer de False à True
           - self.fd[i] = True si l'entrée i vient de passer de True à False
 
-        Ne fait rien si nb_entrees == 0 (rétrocompatibilité).
         """
-        if self.nb_entrees == 0:
-            return
-
-        for i in range(self.nb_entrees):
+        for i in range(self.nb_fronts):
             self.fm[i] = self.entrees[i] and not self.entrees_prec[i]
             self.fd[i] = not self.entrees[i] and self.entrees_prec[i]
             self.entrees_prec[i] = self.entrees[i]
