@@ -5,15 +5,12 @@ from neopixel import NeoPixel
 from onewire import OneWire
 from ds18x20 import DS18X20
 
-#Importation des modules pour les afficheurs OLED 
-from ssd1306 import SSD1306_I2C     # module pour commander le OLED
-i2c = I2C(-1, Pin(22), Pin(21))     # pin SCK et SDA du OLED
-display = SSD1306_I2C(128, 64, i2c) # declaration taille ecran, pins
-
-from sh1106 import SH1106_I2C
-i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
-display = SH1106_I2C(128, 64, i2c, Pin(16), 0x3c)
-display.sleep(False)
+# OLED retiré de essential.py — initialiser l'écran dans chaque programme si besoin :
+#   from sh1106 import SH1106_I2C
+#   from machine import I2C, Pin
+#   i2c = I2C(scl=Pin(22), sda=Pin(21), freq=400000)
+#   display = SH1106_I2C(128, 64, i2c, Pin(16), 0x3c)
+#   display.sleep(False)
 
 ds_pin = Pin(27)                       # definie pin DS18B20
 ds_capteur = DS18X20(OneWire(ds_pin))  # cree l'objet ds_capteur

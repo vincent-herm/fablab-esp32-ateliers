@@ -12,12 +12,19 @@
 #     - réceptivités : la condition associée à chaque transition
 #
 # CYCLE D'EXÉCUTION NORMALISÉ (à respecter dans la boucle principale) :
-#   1. tick()               → mise à jour des timers
-#   2. gerer_actions()      → calcul des actions selon étapes actives
-#   3. affecter_sorties()   → application des actions sur les sorties physiques
-#   4. lire_entrees()       → lecture des capteurs et boutons
-#   5. calculer_transitions() → évaluation des conditions de transition
-#   6. franchir(T, trans)   → franchissement des transitions validées
+#   1. franchir(T, trans)        → franchissement des transitions validées
+#                                   (reset des fronts d'étape, puis pose des nouveaux)
+#   2. tick()                    → mise à jour des timers
+#   3. gerer_actions()           → calcul des actions selon étapes actives
+#                                   (les fronts d'étape rising/falling sont lisibles ici)
+#   4. affecter_sorties()        → application des actions sur les sorties physiques
+#   5. lire_entrees()            → lecture des capteurs et boutons
+#   6. detecter_fronts_entrees() → détection des fronts montants/descendants d'entrée
+#                                   (optionnel, seulement si nb_entrees > 0)
+#   7. calculer_transitions()    → évaluation des conditions de transition
+#
+# NOTE : franchir() est en DÉBUT de cycle (pas en fin) pour que les fronts
+# d'étape qu'il pose soient visibles par gerer_actions() du même cycle.
 # =============================================================================
 
 
@@ -29,18 +36,30 @@ class Grafcet:
         g = Grafcet(nb_etapes=3, etape_initiale=0)
 
         while True:
-            g.tick(20)
-            # ... vos fonctions gerer_actions, affecter_sorties, etc.
-            g.franchir(T, transitions)
+            g.franchir(T, transitions)   # 1. évolution + fronts d'étape
+            g.tick(20)                   # 2. timers
+            # gerer_actions()            # 3. actions (fronts lisibles ici !)
+            # affecter_sorties()         # 4. sorties physiques
+            # lire_entrees()             # 5. capteurs/boutons
+            # g.detecter_fronts_entrees()# 6. fronts d'entrée (optionnel)
+            # calculer_transitions()     # 7. conditions
             synchro_ms(20)
+
+    Avec fronts d'entrée (optionnel) :
+        g = Grafcet(nb_etapes=3, etape_initiale=0, nb_entrees=4)
+
+        # Dans lire_entrees(), remplir g.entrees[i] avec l'état des capteurs
+        # Puis g.detecter_fronts_entrees() calcule g.fm[i] et g.fd[i]
+        # Dans calculer_transitions(), utiliser g.fm[i] pour les fronts montants
     """
 
-    def __init__(self, nb_etapes, etape_initiale=0):
+    def __init__(self, nb_etapes, etape_initiale=0, nb_entrees=0):
         """
         Initialise le GRAFCET.
 
         :param nb_etapes:      nombre total d'étapes (taille des tableaux internes)
         :param etape_initiale: indice de l'étape active au démarrage (défaut : 0)
+        :param nb_entrees:     nombre d'entrées à surveiller pour les fronts (défaut : 0 = désactivé)
         """
 
         # --- Tableau d'activation des étapes ---
@@ -76,15 +95,26 @@ class Grafcet:
         # Activation de l'étape initiale : seule étape active au démarrage
         self.etapes[etape_initiale] = True
 
+        # --- Fronts d'entrée (optionnel) ---
+        # Si nb_entrees > 0, détection des changements d'état des capteurs/boutons
+        # fm[i] = front montant d'entrée i (True pendant 1 cycle quand entrée passe False→True)
+        # fd[i] = front descendant d'entrée i (True pendant 1 cycle quand entrée passe True→False)
+        self.nb_entrees = nb_entrees
+        if nb_entrees > 0:
+            self.entrees      = [False] * nb_entrees  # état actuel (à remplir dans lire_entrees())
+            self.entrees_prec = [False] * nb_entrees  # état du cycle précédent
+            self.fm           = [False] * nb_entrees  # fronts montants d'entrée
+            self.fd           = [False] * nb_entrees  # fronts descendants d'entrée
+
     # -------------------------------------------------------------------------
 
     def tick(self, dt_ms=20):
         """
         Met à jour les timers internes. À appeler UNE FOIS par cycle de boucle,
-        AVANT gerer_actions().
+        APRÈS franchir() et AVANT gerer_actions().
 
         - Incrémente tempo[i] pour chaque étape active
-        - Remet à zéro les fronts montants et descendants (ils ne durent qu'un cycle)
+        - Ne touche PAS aux fronts (rising/falling) — ceux-ci sont gérés par franchir()
 
         :param dt_ms: durée du cycle en millisecondes — doit correspondre
                       à la valeur passée à synchro_ms() dans la boucle principale
@@ -94,11 +124,6 @@ class Grafcet:
         for i in range(len(self.etapes)):
             if self.etapes[i]:
                 self.tempo[i] += dt_ms  # ex: après 10 cycles à 20ms → tempo[i] = 200
-
-        # Efface les fronts : ils ne sont visibles QUE pendant le cycle
-        # où l'étape vient de changer d'état
-        self.rising  = [False] * len(self.etapes)   # remet tous les fronts montants à False
-        self.falling = [False] * len(self.etapes)   # remet tous les fronts descendants à False
 
     # -------------------------------------------------------------------------
 
@@ -126,6 +151,11 @@ class Grafcet:
                             réceptivité de la transition i est satisfaite
         """
 
+        # Reset des fronts d'étape AVANT de poser les nouveaux
+        # Les fronts posés par le cycle précédent ont été lus par gerer_actions()
+        self.rising  = [False] * len(self.etapes)
+        self.falling = [False] * len(self.etapes)
+
         # Parcourt chaque règle de la table de transitions
         for t_id, desactiver, activer in T:
 
@@ -143,3 +173,27 @@ class Grafcet:
                 for s in activer:
                     self.rising[s]  = True   # signale le front montant pour ce cycle
                     self.etapes[s]  = True   # active l'étape
+
+    # -------------------------------------------------------------------------
+
+    def detecter_fronts_entrees(self):
+        """
+        Détecte les fronts montants et descendants des entrées.
+        À appeler APRÈS lire_entrees() et AVANT calculer_transitions().
+
+        Compare self.entrees (état actuel, rempli par l'utilisateur dans
+        lire_entrees()) avec self.entrees_prec (état du cycle précédent).
+
+        Résultat :
+          - self.fm[i] = True si l'entrée i vient de passer de False à True
+          - self.fd[i] = True si l'entrée i vient de passer de True à False
+
+        Ne fait rien si nb_entrees == 0 (rétrocompatibilité).
+        """
+        if self.nb_entrees == 0:
+            return
+
+        for i in range(self.nb_entrees):
+            self.fm[i] = self.entrees[i] and not self.entrees_prec[i]
+            self.fd[i] = not self.entrees[i] and self.entrees_prec[i]
+            self.entrees_prec[i] = self.entrees[i]
