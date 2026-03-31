@@ -107,10 +107,14 @@ vient juste d'être activée par ce même fm.
 Pour lire la valeur finale, utiliser `g.compt_final[i]` sur `g.falling[i]`.
 Pour compter entre les cycles (inter-étapes), utiliser une variable Python.
 
-### 3. Pas de rising au démarrage/reinit
-`__init__` et `reinitialiser()` ne posent PAS de `rising`. Les sorties
-continues marchent (lisent `etapes`), mais une action mémorisée sur
-`rising[0]` ne se déclencherait pas au premier cycle.
+### 3. rising AU démarrage/reinit (conforme IEC 60848)
+`__init__` et `reinitialiser()` posent `rising[s] = True` pour les
+étapes initiales + `_skip_reset = True` pour que `franchir()` ne les
+efface pas au premier appel. C'est conforme à la norme : l'étape
+initiale "devient active" → c'est un événement d'activation (P1).
+**Conséquence** : si on utilise `rising[0]` pour compter des cycles,
+le démarrage compte comme un cycle. Initialiser le compteur à -1
+pour ignorer ce premier rising (voir ascenseur_complet.py).
 
 ### 4. Arrêt d'urgence hors du GRAFCET
 L'AU est testé dans la boucle principale, pas dans le GRAFCET.
