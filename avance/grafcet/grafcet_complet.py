@@ -134,6 +134,10 @@ class Grafcet:
             self.etapes[s] = True
             self.rising[s] = True
 
+        # Flag pour préserver les fronts posés par __init__ ou reinitialiser()
+        # franchir() ne remet pas rising/falling à zéro au prochain appel
+        self._skip_reset = True
+
         # Fronts d'entrée (optionnel)
         self.nb_fronts    = nb_fronts
         self.entrees      = [False] * nb_fronts
@@ -165,8 +169,11 @@ class Grafcet:
         :param transitions: liste de booléens (réceptivités pures)
         """
 
-        self.rising  = [False] * self.nb_etapes
-        self.falling = [False] * self.nb_etapes
+        if self._skip_reset:
+            self._skip_reset = False
+        else:
+            self.rising  = [False] * self.nb_etapes
+            self.falling = [False] * self.nb_etapes
 
         # Passe 1 : collecte
         a_desactiver = set()
@@ -218,6 +225,8 @@ class Grafcet:
         for s in self._init:
             self.etapes[s] = True
             self.rising[s] = True
+
+        self._skip_reset = True  # préserver les fronts pour gerer_actions()
 
     # -------------------------------------------------------------------------
 

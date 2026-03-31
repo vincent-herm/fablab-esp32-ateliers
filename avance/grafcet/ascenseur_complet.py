@@ -16,8 +16,8 @@
 #   │ Mode MÉMORISÉ (SET/RESET)   │ led_rouge clignote 2 Hz             │
 #   │ (sortie traverse 2 étapes) │ SET=rising[1], RESET=falling[2]     │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
-#   │ Front montant d'entrée (fm) │ bpA détecté en front → 1 appui =   │
-#   │                             │ 1 cycle (pas de rebouclage)         │
+#   │ Front montant d'entrée (fm) │ bpA=fm[0] (start), bpD=fm[1]       │
+#   │                             │ (arrêt d'urgence en front)          │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
 #   │ Front montant d'étape       │ g.rising[1] → SET clignoter         │
 #   │ (rising)                    │ g.rising[0] → affiche nb de cycles  │
@@ -30,6 +30,9 @@
 #   ├─────────────────────────────┼──────────────────────────────────────┤
 #   │ Compteur (nb_cycles)        │ variable Python comptant les        │
 #   │                             │ aller-retours. Après 5 → bloqué.    │
+#   ├─────────────────────────────┼──────────────────────────────────────┤
+#   │ Compteur d'étape (compt)    │ g.compt[1] compte les appuis bpA    │
+#   │                             │ pendant la descente (remis à 0 auto)│
 #   ├─────────────────────────────┼──────────────────────────────────────┤
 #   │ Réinitialisation (Règle 6)  │ bpD = arrêt d'urgence →             │
 #   │                             │ g.reinitialiser()                    │
@@ -67,6 +70,7 @@
 #       ┌──────────────────▼───────────────────┐
 #       │  ÉTAPE 1 — Descente                  │  led_verte ON
 #       │  SET clignoter (rising[1])           │  led_rouge clignote
+#       │  compt[1]++ si appui bpA (fm[0])     │  (compteur d'étape)
 #       └──────────────────┬───────────────────┘
 #                          │ T1 : bpC actif OU niveau simulé ≤ -99
 #       ┌──────────────────▼───────────────────┐
@@ -76,7 +80,7 @@
 #                          │ T2 : bpB actif OU niveau simulé ≥ -1
 #                          └────────────────────────────► ÉTAPE 0
 #
-#   À tout moment : bpD → reinitialiser() (arrêt d'urgence)
+#   À tout moment : fm[1] (front montant bpD) → reinitialiser()
 #
 # Fichiers nécessaires sur l'ESP32 :
 #   grafcet_complet.py  (moteur GRAFCET)
@@ -119,8 +123,8 @@ np.write()
 # INITIALISATION DU MOTEUR GRAFCET
 # =============================================================================
 
-# nb_fronts=1 : front montant de bpA (entrée 0)
-g = Grafcet(nb_etapes=3, nb_fronts=1)
+# nb_fronts=2 : front montant de bpA (entrée 0) et bpD (entrée 1)
+g = Grafcet(nb_etapes=3, nb_fronts=2)
 
 T = [
     (0, (0,), (1,)),   # T0 : Repos → Descente
@@ -186,6 +190,16 @@ def gerer_actions():
     if g.rising[1]:   clignoter = True     # SET : début descente → alarme ON
     if g.falling[2]:  clignoter = False    # RESET : fin montée → alarme OFF
 
+    # --- Compteur d'étape (g.compt) ---
+    # g.compt[1] compte les appuis sur bpA PENDANT la descente (étape 1)
+    # Il est remis à 0 automatiquement quand l'étape 1 est désactivée.
+    # C'est la différence avec nb_cycles (variable Python qui survit entre les étapes).
+    if g.etapes[1] and g.fm[0]:
+        g.compt[1] += 1
+    if g.falling[1]:
+        if g.compt[1] > 0:
+            print("  Appuis bpA pendant descente :", g.compt[1])
+
     # --- Compteur d'aller-retours ---
     # nb_cycles s'incrémente à chaque retour au repos (front montant étape 0)
     # On utilise une variable Python (pas g.compt[0]) car g.compt est remis
@@ -220,9 +234,10 @@ def affecter_sorties():
 def lire_entrees():
     global Bas, Haut
 
-    # Front montant d'entrée : bpA (entrée 0)
-    # On écrit l'état brut, detecter_fronts_entrees() calcule g.fm[0]
+    # Fronts d'entrée : bpA (entrée 0) et bpD (entrée 1)
+    # On écrit l'état brut, detecter_fronts_entrees() calcule g.fm[0] et g.fm[1]
     g.entrees[0] = bpA.value()
+    g.entrees[1] = bpD.value()
 
     # Entrées classiques (niveau)
     Bas  = bpC.value() or (niveau <= -99)
@@ -249,16 +264,27 @@ print("Appuyer sur bpA pour démarrer un cycle")
 
 while True:
 
-    # Arrêt d'urgence : bpD pressé → retour à la situation initiale
-    if bpD.value():
+    g.franchir(T, transitions)       # 1. évolution + fronts d'étape
+
+    # Arrêt d'urgence : front montant de bpD (g.fm[1])
+    # Placé APRÈS franchir() pour que les fronts posés par reinitialiser()
+    # soient visibles par gerer_actions() (ils survivent jusqu'au prochain franchir)
+    if g.fm[1]:
         g.reinitialiser()
-        clignoter = False           # éteindre l'alarme
-        nb_cycles = 0               # remettre le compteur à 0
-        maintenance = False         # débloquer le compteur
-        led_rouge.value(0)          # éteindre la LED rouge
+        clignoter = False               # éteindre l'alarme
+        nb_cycles = 0                   # remettre le compteur à 0
+        maintenance = False             # débloquer
+        led_rouge.value(0)              # éteindre la LED rouge immédiatement
+        sortie_descente.value(0)        # couper le moteur descente
+        sortie_montee.value(0)          # couper le moteur montée
+        for led in range(8):            # NeoPixel → position initiale
+            np[led] = (0, 0, 0)
+        np[0] = (0, 50, 0)
+        np.write()
+        niveau = 0                      # reset simulation
+        x_ancien = 0
         print("!!! ARRÊT D'URGENCE — réinitialisation !!!")
 
-    g.franchir(T, transitions)       # 1. évolution + fronts d'étape
     g.tick(20)                       # 2. timers
     gerer_actions()                  # 3. actions (fronts lisibles ici)
     affecter_sorties()               # 4. sorties physiques
