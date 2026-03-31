@@ -277,12 +277,7 @@ while True:
         led_rouge.value(0)              # éteindre la LED rouge immédiatement
         sortie_descente.value(0)        # couper le moteur descente
         sortie_montee.value(0)          # couper le moteur montée
-        for led in range(8):            # NeoPixel → position initiale
-            np[led] = (0, 0, 0)
-        np[0] = (0, 50, 0)
-        np.write()
-        niveau = 0                      # reset simulation
-        x_ancien = 0
+        # NeoPixel et niveau gardent leur position — l'AU fige le système
         print("!!! ARRÊT D'URGENCE — réinitialisation !!!")
 
     g.tick(20)                       # 2. timers
