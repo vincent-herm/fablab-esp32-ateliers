@@ -30,13 +30,17 @@
 #      Dans cet exemple simple (séquence linéaire), ça ne change rien.
 #      La différence est visible avec des divergences EN OU.
 #
-# MODE DE SORTIE :
-#   Toutes les sorties de cet exemple sont en mode CONTINU (assignation).
-#   La sortie suit directement l'état de l'étape :
+# MODES DE SORTIE (les deux modes dans le même programme) :
+#
+#   Mode CONTINU (assignation) — la sortie suit l'étape :
 #     led_bleue  = g.etapes[0]   (allumée tant que étape 0 active)
-#     Descendre  = g.etapes[1]   (vrai tant que étape 1 active)
-#     Monter     = g.etapes[2]   (vrai tant que étape 2 active)
-#   Aucune sortie mémorisée dans cet exemple.
+#     led_verte  = Descendre     (allumée tant que étape 1 active)
+#     led_jaune  = Monter        (allumée tant que étape 2 active)
+#
+#   Mode MÉMORISÉ (SET/RESET) — la sortie conserve sa valeur :
+#     led_rouge  clignote à 2 Hz pendant la descente
+#     SET  : g.rising[1]  → clignoter = True   (entrée étape Descente)
+#     RESET: g.rising[2]  → clignoter = False  (entrée étape Montée)
 #
 # CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
 #
@@ -46,9 +50,10 @@
 #     bpC  (Pin 39) → fin de course BAS
 #
 #   Sorties :
-#     led_bleue (Pin  2) → témoin étape 0 (repos)
-#     led_verte (Pin 18) → commande Descente
-#     led_jaune (Pin 19) → commande Montée
+#     led_bleue (Pin  2) → témoin étape 0 (repos)           [CONTINU]
+#     led_verte (Pin 18) → commande Descente                [CONTINU]
+#     led_jaune (Pin 19) → commande Montée                  [CONTINU]
+#     led_rouge (Pin 23) → alarme clignotante en descente   [MÉMORISÉ]
 #     np        (Pin 26) → indicateur de niveau (barre NeoPixel 8 LEDs)
 #     Pin 12             → sortie réelle Descente (driver moteur / relais)
 #     Pin 13             → sortie réelle Montée   (driver moteur / relais)
@@ -75,6 +80,7 @@
 # =============================================================================
 
 from machine import Pin
+from time import ticks_ms
 from grafcet_variante import Grafcet
 
 from essential import (
@@ -85,6 +91,7 @@ from essential import (
     led_bleue,     # témoin repos          (Pin  2)
     led_verte,     # commande Descente     (Pin 18)
     led_jaune,     # commande Montée       (Pin 19)
+    led_rouge,     # alarme clignotante    (Pin 23)
     np,            # NeoPixel 8 LEDs       (Pin 26)
 )
 
@@ -120,11 +127,12 @@ T = [
 # VARIABLES
 # =============================================================================
 
-Descendre = False
-Monter    = False
-Start     = False
-Haut      = False
-Bas       = False
+Descendre  = False
+Monter     = False
+Start      = False
+Haut       = False
+Bas        = False
+clignoter  = False    # mode MÉMORISÉ : led_rouge clignote pendant la descente
 
 niveau   = 0      # position simulée : 0 = haut, -100 = bas
 vitesse  = 1      # déplacement par cycle
@@ -162,17 +170,27 @@ def ascenseur(inc):
 
 
 # =============================================================================
-# CYCLE GRAFCET — mode continu (toutes les sorties suivent l'état des étapes)
+# CYCLE GRAFCET — mode continu + mémorisé
 # =============================================================================
 
 def gerer_actions():
-    global Descendre, Monter
+    global Descendre, Monter, clignoter
+
+    # --- Mode CONTINU (assignation) ---
     if g.etapes[0]: Descendre = False ; Monter = False    # Repos
     if g.etapes[1]: Descendre = True  ; Monter = False    # Descente
     if g.etapes[2]: Descendre = False ; Monter = True     # Montée
 
+    # --- Mode MÉMORISÉ (SET/RESET) ---
+    # clignoter est SET à l'entrée de l'étape Descente,
+    # et RESET à l'entrée de l'étape Montée.
+    # La variable conserve sa valeur entre les deux fronts.
+    if g.rising[1]:  clignoter = True    # SET : début descente → alarme ON
+    if g.rising[2]:  clignoter = False   # RESET : début montée → alarme OFF
+
 
 def affecter_sorties():
+    # Sorties continues
     led_bleue.value(g.etapes[0])         # témoin repos
     led_verte.value(Descendre)           # LED descente
     led_jaune.value(Monter)              # LED montée
@@ -180,6 +198,12 @@ def affecter_sorties():
     sortie_montee.value(Monter)          # sortie moteur Montée
     if Descendre: ascenseur(-vitesse)    # simulation descente
     if Monter:    ascenseur(+vitesse)    # simulation montée
+
+    # Sortie mémorisée : LED rouge clignote à 2 Hz (250 ms ON / 250 ms OFF)
+    if clignoter:
+        led_rouge.value(ticks_ms() % 500 < 250)
+    else:
+        led_rouge.value(0)
 
 
 def lire_entrees():
