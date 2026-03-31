@@ -28,8 +28,8 @@
 #   │ Temporisation (tempo)       │ tempo[0] > 500 : anti-rebond au     │
 #   │                             │ repos (500 ms avant nouveau départ) │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
-#   │ Compteur (compt)            │ compt[0] compte les aller-retours   │
-#   │                             │ Après 5 cycles → "MAINTENANCE"      │
+#   │ Compteur (nb_cycles)        │ variable Python comptant les        │
+#   │                             │ aller-retours. Après 5 → bloqué.    │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
 #   │ Réinitialisation (Règle 6)  │ bpD = arrêt d'urgence →             │
 #   │                             │ g.reinitialiser()                    │
@@ -59,11 +59,11 @@
 #
 #       ┌──────────────────────────────────────┐
 #       │  ÉTAPE 0 — Repos                     │  led_bleue ON
-#       │  compt[0]++ à chaque retour (rising) │  affiche nb cycles
+#       │  nb_cycles++ à chaque retour (rising)│  affiche nb cycles
 #       └──────────────────┬───────────────────┘
 #                          │ T0 : fm[0] (front montant bpA)
 #                          │      ET tempo[0] > 500 ms (anti-rebond)
-#                          │      ET compt[0] < 5 (pas en maintenance)
+#                          │      ET pas en maintenance (< 5 cycles)
 #       ┌──────────────────▼───────────────────┐
 #       │  ÉTAPE 1 — Descente                  │  led_verte ON
 #       │  SET clignoter (rising[1])           │  led_rouge clignote
@@ -138,6 +138,7 @@ Monter     = False
 Bas        = False
 Haut       = False
 clignoter  = False    # mode MÉMORISÉ : led_rouge clignote pendant descente+montée
+nb_cycles  = 0        # compteur d'aller-retours (variable Python, pas g.compt)
 maintenance = False   # True après 5 cycles → bloque le départ
 
 niveau   = 0      # position simulée : 0 = haut, -100 = bas
@@ -173,7 +174,7 @@ def ascenseur(inc):
 # =============================================================================
 
 def gerer_actions():
-    global Descendre, Monter, clignoter, maintenance
+    global Descendre, Monter, clignoter, nb_cycles, maintenance
 
     # --- Mode CONTINU (1 sortie = 1 étape) ---
     if g.etapes[0]: Descendre = False ; Monter = False
@@ -186,12 +187,15 @@ def gerer_actions():
     if g.falling[2]:  clignoter = False    # RESET : fin montée → alarme OFF
 
     # --- Compteur d'aller-retours ---
-    # compt[0] s'incrémente à chaque retour au repos (front montant étape 0)
-    # Après 5 cycles, on passe en maintenance (bloque le départ)
+    # nb_cycles s'incrémente à chaque retour au repos (front montant étape 0)
+    # On utilise une variable Python (pas g.compt[0]) car g.compt est remis
+    # à 0 quand l'étape est désactivée — il ne survit pas entre les cycles.
+    # g.compt est fait pour compter des événements DANS une étape active.
+    # nb_cycles compte ENTRE les activations successives de l'étape 0.
     if g.rising[0]:
-        g.compt[0] += 1
-        print("Cycle", g.compt[0], "terminé")
-        if g.compt[0] >= 5:
+        nb_cycles += 1
+        print("Cycle", nb_cycles, "terminé")
+        if nb_cycles >= 5:
             maintenance = True
             print(">>> MAINTENANCE : 5 cycles atteints, redémarrage bloqué")
 
@@ -249,6 +253,7 @@ while True:
     if bpD.value():
         g.reinitialiser()
         clignoter = False           # éteindre l'alarme
+        nb_cycles = 0               # remettre le compteur à 0
         maintenance = False         # débloquer le compteur
         led_rouge.value(0)          # éteindre la LED rouge
         print("!!! ARRÊT D'URGENCE — réinitialisation !!!")
