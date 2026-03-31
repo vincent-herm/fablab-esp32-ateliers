@@ -193,10 +193,9 @@ def gerer_actions():
     # Action à l'activation de l'étape 0 : bip buzzer 200 ms
     # Se déclenche au démarrage ET à chaque retour au repos
     if g.rising[0]:
-        buzzer.freq(1000)
-        buzzer.duty(50)
+        buzzer.init(freq=1000, duty=50)
     if g.etapes[0] and g.tempo[0] > 200:
-        buzzer.duty(0)
+        buzzer.deinit()
 
     # --- Mode MÉMORISÉ : LED rouge clignotante (SET/RESET — traverse 2 étapes) ---
     # La LED rouge clignote de l'étape 1 (descente) à la fin de l'étape 2 (montée)
@@ -288,7 +287,7 @@ while True:
         nb_cycles = -1                  # -1 car reinit pose rising[0]
         maintenance = False             # débloquer
         led_rouge.value(0)              # éteindre la LED rouge immédiatement
-        buzzer.duty(0)                  # couper le buzzer
+        buzzer.deinit()                 # couper le buzzer
         sortie_descente.value(0)        # couper le moteur descente
         sortie_montee.value(0)          # couper le moteur montée
         # NeoPixel et niveau gardent leur position — l'AU fige le système
