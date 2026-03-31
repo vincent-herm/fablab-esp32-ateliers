@@ -191,14 +191,17 @@ def gerer_actions():
     if g.falling[2]:  clignoter = False    # RESET : fin montée → alarme OFF
 
     # --- Compteur d'étape (g.compt) ---
-    # g.compt[1] compte les appuis sur bpA PENDANT la descente (étape 1)
-    # Il est remis à 0 automatiquement quand l'étape 1 est désactivée.
+    # g.compt[i] compte les appuis sur bpA PENDANT l'étape i
+    # Il est remis à 0 automatiquement quand l'étape est désactivée.
     # C'est la différence avec nb_cycles (variable Python qui survit entre les étapes).
     if g.etapes[1] and g.fm[0]:
         g.compt[1] += 1
-    if g.falling[1]:
-        if g.compt[1] > 0:
-            print("  Appuis bpA pendant descente :", g.compt[1])
+    if g.etapes[2] and g.fm[0]:
+        g.compt[2] += 1
+    if g.falling[1] and g.compt[1] > 0:
+        print("  Appuis bpA pendant descente :", g.compt[1])
+    if g.falling[2] and g.compt[2] > 0:
+        print("  Appuis bpA pendant montée :", g.compt[2])
 
     # --- Compteur d'aller-retours ---
     # nb_cycles s'incrémente à chaque retour au repos (front montant étape 0)
