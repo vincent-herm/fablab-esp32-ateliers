@@ -1,7 +1,8 @@
 # =============================================================================
-# exemple_leds.py — Généré depuis dessin GRAFCET
+# exemple_leds.py — Généré depuis dessin GRAFCET (grafcet-dessin.jpeg)
 # =============================================================================
 # GRAFCET à 6 étapes avec divergence ET (séquences parallèles)
+# Utilise grafcet_complet.py — version de référence
 #
 #   Étape 0 — Repos      │ rien
 #              BP1        │
@@ -15,15 +16,17 @@
 #              BP4 (+ étapes 3 ET 5 actives) ← convergence ET
 #   Étape 0 — Repos
 #
-# Fichiers nécessaires sur l'ESP32 :
-#   grafcet.py    (moteur GRAFCET)
-#   essential.py  (déclarations carte ENIM — sans OLED)
+# Toutes les sorties sont en mode CONTINU (1 LED = 1 étape).
+# La convergence ET (T4) montre la validation automatique :
+#   le moteur vérifie que les étapes 3 ET 5 sont actives.
 #
-# ⚠️  Adapter les broches XX aux connecteurs libres de ta carte.
+# Fichiers nécessaires sur l'ESP32 :
+#   grafcet_complet.py  (moteur GRAFCET)
+#   essential.py        (déclarations carte ENIM — sans OLED)
 # =============================================================================
 
-from machine  import Pin
-from grafcet  import Grafcet
+from machine import Pin
+from grafcet_complet import Grafcet
 from essential import synchro_ms, bpA, bpB, bpC, bpD, led_bleue, led_verte, led_jaune, led_rouge
 
 
@@ -33,10 +36,11 @@ BP2 = bpB    # lancement séquence parallèle → broche 34
 BP3 = bpC    # fin branche droite           → broche 39
 BP4 = bpD    # convergence                  → broche 36
 
+
 # --- Sorties (carte ENIM) ---
 Led_Bleu_pin   = led_bleue   # broche 2
 Led_Rouge_pin  = led_rouge   # broche 23
-Led_Jaune_pin  = led_jaune   # broche 19  ← utilisée pour Led Orange (pas de LED orange sur l'ENIM)
+Led_Jaune_pin  = led_jaune   # broche 19  ← utilisée pour Led Orange (pas de LED orange)
 Led_Verte_pin  = led_verte   # broche 18
 
 
@@ -44,7 +48,7 @@ Led_Verte_pin  = led_verte   # broche 18
 # GRAFCET
 # =============================================================================
 
-g = Grafcet(nb_etapes=6, etape_initiale=0)
+g = Grafcet(nb_etapes=6)
 
 T = [
     (0, (0,),   (1,)),      # T0 : BP1              → Repos → Led Bleu
@@ -91,16 +95,21 @@ def lire_entrees():
 
 
 def calculer_transitions():
-    transitions[0] = g.etapes[0] and BP1.value()
-    transitions[1] = g.etapes[1] and BP2.value()
-    transitions[2] = g.etapes[2] and (g.tempo[2] > 3000)   # 3 secondes
-    transitions[3] = g.etapes[4] and BP3.value()
-    transitions[4] = g.etapes[3] and g.etapes[5] and BP4.value()  # convergence ET
+    # Réceptivités pures — le moteur vérifie les étapes sources (Règle 2)
+    # Pour T4 (convergence ET), le moteur vérifie que étapes 3 ET 5 sont actives
+    transitions[0] = BP1.value()
+    transitions[1] = BP2.value()
+    transitions[2] = g.tempo[2] > 3000                # 3 secondes
+    transitions[3] = BP3.value()
+    transitions[4] = BP4.value()                       # convergence ET (validation auto)
 
 
 # =============================================================================
 # BOUCLE PRINCIPALE
 # =============================================================================
+
+print("GRAFCET 6 étapes — divergence/convergence ET")
+print("BP1=Start, BP2=Parallèle, BP3=Fin droite, BP4=Convergence")
 
 while True:
     g.franchir(T, transitions)
