@@ -60,6 +60,20 @@
 #   traversée en 1 seul cycle verra ses actions continues appliquées
 #   pendant 20 ms (la durée d'un cycle).
 #
+# DIVERGENCE EN OU (responsabilité du concepteur) :
+#   Si deux transitions partent de la même étape, leurs réceptivités
+#   DOIVENT être exclusives (jamais vraies en même temps). Le moteur
+#   ne gère pas de priorité — si les deux sont vraies, les deux
+#   branches seront activées (comportement non déterministe).
+#
+# RÉINITIALISATION (Règle 6 IEC 60848) :
+#   g.reinitialiser() remet le GRAFCET dans sa situation initiale.
+#   Utile pour arrêt d'urgence ou condition de forçage externe.
+#
+# ÉTAPES INITIALES MULTIPLES :
+#   etape_initiale peut être un entier ou une liste d'entiers.
+#   Ex: Grafcet(nb_etapes=6, etape_initiale=[0, 3])
+#
 # CYCLE D'EXÉCUTION NORMALISÉ (à respecter dans la boucle principale) :
 #   1. franchir(T, trans)        → franchissement des transitions validées
 #                                   (reset des fronts d'étape, puis pose des nouveaux)
@@ -125,9 +139,13 @@ class Grafcet:
         Initialise le GRAFCET.
 
         :param nb_etapes:      nombre total d'étapes (taille des tableaux internes)
-        :param etape_initiale: indice de l'étape active au démarrage (défaut : 0)
+        :param etape_initiale: étape(s) active(s) au démarrage — un entier (défaut : 0)
+                               ou une liste d'entiers pour plusieurs étapes initiales
+                               ex: etape_initiale=[0, 3] pour activer étapes 0 et 3
         :param nb_fronts:      nombre d'entrées à surveiller pour les fronts (défaut : 0)
         """
+
+        self.nb_etapes = nb_etapes
 
         # --- Tableau d'activation des étapes ---
         # etapes[i] = True  → l'étape i est active
@@ -157,9 +175,16 @@ class Grafcet:
         # Utilisation : actions mémorisées (RESET) à la sortie d'une étape
         self.falling = [False] * nb_etapes
 
-        # Activation de l'étape initiale : seule étape active au démarrage
-        self.etapes[etape_initiale] = True
-        self.rising[etape_initiale] = True  # front montant au démarrage (actions mémorisées)
+        # Activation de l'étape initiale (Règle 1 IEC 60848)
+        # Mémorise la situation initiale pour reinitialiser()
+        if isinstance(etape_initiale, int):
+            self._init = [etape_initiale]
+        else:
+            self._init = list(etape_initiale)
+
+        for s in self._init:
+            self.etapes[s] = True
+            self.rising[s] = True   # front montant au démarrage (actions mémorisées)
 
         # --- Fronts d'entrée ---
         # Détection des changements d'état des capteurs/boutons
@@ -270,6 +295,32 @@ class Grafcet:
         for s in a_activer:
             self.rising[s]  = True   # front montant pour ce cycle
             self.etapes[s]  = True
+
+    # -------------------------------------------------------------------------
+
+    def reinitialiser(self):
+        """
+        Remet le GRAFCET dans sa situation initiale (Règle 6 IEC 60848).
+
+        - Désactive toutes les étapes (falling pour celles qui étaient actives)
+        - Réactive uniquement les étapes initiales (rising)
+        - Remet tous les timers et compteurs à 0
+
+        Usage : appeler quand un arrêt d'urgence ou une condition externe
+        impose de revenir à l'état de départ.
+            if arret_urgence:
+                g.reinitialiser()
+        """
+        for i in range(self.nb_etapes):
+            if self.etapes[i] and i not in self._init:
+                self.falling[i] = True
+            self.etapes[i] = False
+            self.tempo[i]  = 0
+            self.compt[i]  = 0
+
+        for s in self._init:
+            self.etapes[s] = True
+            self.rising[s] = True
 
     # -------------------------------------------------------------------------
 
