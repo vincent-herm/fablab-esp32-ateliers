@@ -36,7 +36,7 @@
 #
 #   Mode CONTINU (assignation) — la sortie suit l'état de l'étape :
 #     La sortie est vraie tant que l'étape est active, fausse sinon.
-#     C'est le mode par défaut, le plus simple.
+#     C'est le mode par défaut, le plus simple et le plus sûr.
 #     Code type :
 #       led.value(g.etapes[i])
 #       Descendre = g.etapes[1]
@@ -51,7 +51,21 @@
 #       - Au franchissement : action déclenchée dans gerer_actions() sur un front
 #     Code type :
 #       if g.rising[1]:  alarme = True    # SET à l'entrée de l'étape 1
-#       if g.rising[0]:  alarme = False   # RESET au retour en étape 0
+#       if g.falling[2]: alarme = False   # RESET à la fin de l'étape 2
+#
+#   QUAND UTILISER QUEL MODE ?
+#     - Sortie liée à UNE SEULE étape → CONTINU
+#       La sortie suit l'étape : active = ON, inactive = OFF.
+#       Plus simple, plus lisible, et sécuritaire : si le programme plante,
+#       les sorties passent à 0 (état sûr).
+#       Ex: un moteur tourne pendant l'étape 1, s'arrête en sortant.
+#
+#     - Sortie qui TRAVERSE PLUSIEURS étapes → MÉMORISÉ
+#       La sortie est activée dans une étape et désactivée dans une autre.
+#       Nécessaire quand le SET et le RESET sont dans des étapes différentes.
+#       Attention : si le programme plante entre SET et RESET, la sortie
+#       reste dans son dernier état (risque pour un moteur ou un actionneur).
+#       Ex: une alarme démarre à l'étape 1 et s'arrête à la fin de l'étape 3.
 #
 #   RÈGLE : une variable de sortie ne doit être utilisée que dans UN SEUL
 #   mode (jamais continu ET mémorisé pour la même variable).
@@ -129,9 +143,11 @@ class Grafcet:
             # PAS BESOIN de : g.etapes[0] and Start and ...
 
     Modes de sortie dans gerer_actions() :
-        Continu :   Descendre = g.etapes[1]              (suit l'étape)
-        Mémorisé :  if g.rising[1]: alarme = True         (SET ponctuel)
-                    if g.rising[0]: alarme = False        (RESET ponctuel)
+        Continu (1 sortie = 1 étape) :
+            Descendre = g.etapes[1]              # ON tant que étape 1 active
+        Mémorisé (1 sortie traverse plusieurs étapes) :
+            if g.rising[1]:   alarme = True      # SET à l'entrée étape 1
+            if g.falling[2]:  alarme = False     # RESET à la fin étape 2
     """
 
     def __init__(self, nb_etapes, etape_initiale=0, nb_fronts=0):

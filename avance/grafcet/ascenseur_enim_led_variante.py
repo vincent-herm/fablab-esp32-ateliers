@@ -32,15 +32,22 @@
 #
 # MODES DE SORTIE (les deux modes dans le même programme) :
 #
-#   Mode CONTINU (assignation) — la sortie suit l'étape :
+#   Mode CONTINU (assignation) — sortie liée à UNE SEULE étape :
+#     La sortie suit l'étape : active = ON, inactive = OFF.
+#     Plus simple et sécuritaire (si le programme plante, tout s'éteint).
 #     led_bleue  = g.etapes[0]   (allumée tant que étape 0 active)
 #     led_verte  = Descendre     (allumée tant que étape 1 active)
 #     led_jaune  = Monter        (allumée tant que étape 2 active)
+#     moteurs    = idem          (tournent tant que l'étape est active)
 #
-#   Mode MÉMORISÉ (SET/RESET) — la sortie conserve sa valeur :
-#     led_rouge  clignote à 2 Hz pendant la descente
+#   Mode MÉMORISÉ (SET/RESET) — sortie qui TRAVERSE PLUSIEURS étapes :
+#     La sortie est activée dans une étape et désactivée dans une autre.
+#     Ici, led_rouge clignote de l'étape 1 (descente) à la fin de l'étape 2
+#     (montée) — elle couvre 2 étapes, impossible en mode continu.
 #     SET  : g.rising[1]   → clignoter = True   (entrée étape Descente)
 #     RESET: g.falling[2]  → clignoter = False  (fin étape Montée)
+#     ⚠ Attention : si le programme plante entre SET et RESET, la sortie
+#     reste dans son dernier état.
 #
 # CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
 #
