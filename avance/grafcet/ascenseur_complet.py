@@ -31,8 +31,8 @@
 #   │ Compteur (nb_cycles)        │ variable Python comptant les        │
 #   │                             │ aller-retours. Après 5 → bloqué.    │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
-#   │ Compteur d'étape (compt)    │ g.compt[1] compte les appuis bpA    │
-#   │                             │ pendant la descente (remis à 0 auto)│
+#   │ Compteur d'étape (compt)    │ g.compt[2] compte les appuis bpA    │
+#   │                             │ pendant la montée (remis à 0 auto)  │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
 #   │ Réinitialisation (Règle 6)  │ bpD = arrêt d'urgence →             │
 #   │                             │ g.reinitialiser()                    │
@@ -70,11 +70,12 @@
 #       ┌──────────────────▼───────────────────┐
 #       │  ÉTAPE 1 — Descente                  │  led_verte ON
 #       │  SET clignoter (rising[1])           │  led_rouge clignote
-#       │  compt[1]++ si appui bpA (fm[0])     │  (compteur d'étape)
+#       │                                      │
 #       └──────────────────┬───────────────────┘
 #                          │ T1 : bpC actif OU niveau simulé ≤ -99
 #       ┌──────────────────▼───────────────────┐
 #       │  ÉTAPE 2 — Montée                    │  led_jaune ON
+#       │  compt[2]++ si appui bpA (fm[0])     │  (compteur d'étape)
 #       │  RESET clignoter (falling[2])        │  led_rouge clignote
 #       └──────────────────┬───────────────────┘  puis s'arrête
 #                          │ T2 : bpB actif OU niveau simulé ≥ -1
@@ -191,16 +192,13 @@ def gerer_actions():
     if g.falling[2]:  clignoter = False    # RESET : fin montée → alarme OFF
 
     # --- Compteur d'étape (g.compt) ---
-    # g.compt[i] compte les appuis sur bpA PENDANT l'étape i
-    # Il est remis à 0 automatiquement quand l'étape est désactivée.
-    # Pour lire la valeur finale, utiliser g.compt_final[i] sur falling[i]
-    # (car g.compt[i] est déjà à 0 quand falling est posé).
-    if g.etapes[1] and g.fm[0]:
-        g.compt[1] += 1
+    # g.compt[2] compte les appuis sur bpA PENDANT la montée (étape 2)
+    # On ne compte pas pendant la descente car le fm[0] du démarrage
+    # est encore visible quand l'étape 1 s'active (faux comptage).
+    # compt est remis à 0 automatiquement quand l'étape est désactivée.
+    # Pour lire la valeur finale, utiliser compt_final[i] sur falling[i].
     if g.etapes[2] and g.fm[0]:
         g.compt[2] += 1
-    if g.falling[1]:
-        print("  Appuis bpA pendant descente :", g.compt_final[1])
     if g.falling[2]:
         print("  Appuis bpA pendant montée :", g.compt_final[2])
 
