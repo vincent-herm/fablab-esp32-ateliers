@@ -116,12 +116,17 @@ initiale "devient active" → c'est un événement d'activation (P1).
 le démarrage compte comme un cycle. Initialiser le compteur à -1
 pour ignorer ce premier rising (voir ascenseur_complet.py).
 
-### 4. Arrêt d'urgence hors du GRAFCET
+### 4. Buzzer PWM inactif après essential.py
+`essential.py` appelle `buzzer.deinit()` à l'import. Pour utiliser le
+buzzer, il faut `buzzer.init(freq=1000, duty=50)` (pas `buzzer.freq()`
+qui crashe avec "PWM is inactive"). Pour couper : `buzzer.deinit()`.
+
+### 5. Arrêt d'urgence hors du GRAFCET
 L'AU est testé dans la boucle principale, pas dans le GRAFCET.
 C'est un raccourci acceptable. Le GEMMA (cours futur) gérera ça
 proprement avec un GRAFCET maître.
 
-### 5. Divergence OU sans priorité
+### 6. Divergence OU sans priorité
 Si deux transitions partent de la même étape et sont toutes deux vraies,
 les deux branches s'activent. Responsabilité du concepteur.
 
@@ -150,7 +155,7 @@ les deux branches s'activent. Responsabilité du concepteur.
 | led_jaune | 19 | LED jaune |
 | led_rouge | 23 | LED rouge |
 | np | 26 | NeoPixel 8 LEDs |
-| buzzer | 5 | Buzzer PWM |
+| buzzer | 5 | Buzzer PWM (deinit par essential.py — utiliser init/deinit) |
 | Pin 12 | 12 | Sortie libre (moteur descente) |
 | Pin 13 | 13 | Sortie libre (moteur montée) |
 
@@ -196,6 +201,7 @@ transitions = [False] * len(T)
 
 def gerer_actions():
     # sorties continues et mémorisées
+    # ex. rising[0] : buzzer.init(freq=1000, duty=50) pour bip d'entrée
     pass
 
 def affecter_sorties():
