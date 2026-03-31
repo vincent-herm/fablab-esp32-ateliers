@@ -19,8 +19,8 @@
 #   │ Front montant d'entrée (fm) │ bpA=fm[0] (start), bpD=fm[1]       │
 #   │                             │ (arrêt d'urgence en front)          │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
-#   │ Front montant d'étape       │ g.rising[1] → SET clignoter         │
-#   │ (rising)                    │ g.rising[0] → affiche nb de cycles  │
+#   │ Front montant d'étape       │ g.rising[0] → bip buzzer 200 ms     │
+#   │ (rising)                    │ g.rising[1] → SET clignoter         │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
 #   │ Front descendant d'étape    │ g.falling[2] → RESET clignoter      │
 #   │ (falling)                   │                                      │
@@ -54,6 +54,7 @@
 #     led_verte (Pin 18) → commande Descente                [CONTINU]
 #     led_jaune (Pin 19) → commande Montée                  [CONTINU]
 #     led_rouge (Pin 23) → alarme clignotante 2 Hz          [MÉMORISÉ]
+#     buzzer    (Pin  5) → bip "système prêt" 200 ms       [MÉMORISÉ]
 #     np        (Pin 26) → indicateur de niveau NeoPixel
 #     Pin 12             → sortie réelle Descente
 #     Pin 13             → sortie réelle Montée
@@ -62,6 +63,7 @@
 #
 #       ┌──────────────────────────────────────┐
 #       │  ÉTAPE 0 — Repos                     │  led_bleue ON
+#       │  bip buzzer 200 ms (rising[0])       │  "système prêt"
 #       │  nb_cycles++ à chaque retour (rising)│  affiche nb cycles
 #       └──────────────────┬───────────────────┘
 #                          │ T0 : fm[0] (front montant bpA)
@@ -102,6 +104,7 @@ from essential import (
     led_verte,     # commande Descente     (Pin 18)
     led_jaune,     # commande Montée       (Pin 19)
     led_rouge,     # alarme clignotante    (Pin 23)
+    buzzer,        # bip "système prêt"    (Pin  5)
     np,            # NeoPixel 8 LEDs       (Pin 26)
 )
 
@@ -186,7 +189,16 @@ def gerer_actions():
     if g.etapes[1]: Descendre = True  ; Monter = False
     if g.etapes[2]: Descendre = False ; Monter = True
 
-    # --- Mode MÉMORISÉ (SET/RESET — sortie traverse 2 étapes) ---
+    # --- Mode MÉMORISÉ : bip "système prêt" (rising[0] + tempo[0]) ---
+    # Action à l'activation de l'étape 0 : bip buzzer 200 ms
+    # Se déclenche au démarrage ET à chaque retour au repos
+    if g.rising[0]:
+        buzzer.freq(1000)
+        buzzer.duty(50)
+    if g.etapes[0] and g.tempo[0] > 200:
+        buzzer.duty(0)
+
+    # --- Mode MÉMORISÉ : LED rouge clignotante (SET/RESET — traverse 2 étapes) ---
     # La LED rouge clignote de l'étape 1 (descente) à la fin de l'étape 2 (montée)
     if g.rising[1]:   clignoter = True     # SET : début descente → alarme ON
     if g.falling[2]:  clignoter = False    # RESET : fin montée → alarme OFF
@@ -276,6 +288,7 @@ while True:
         nb_cycles = -1                  # -1 car reinit pose rising[0]
         maintenance = False             # débloquer
         led_rouge.value(0)              # éteindre la LED rouge immédiatement
+        buzzer.duty(0)                  # couper le buzzer
         sortie_descente.value(0)        # couper le moteur descente
         sortie_montee.value(0)          # couper le moteur montée
         # NeoPixel et niveau gardent leur position — l'AU fige le système
