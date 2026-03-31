@@ -10,11 +10,12 @@
 #   ┌─────────────────────────────────────────────────────────────────────┐
 #   │ Fonctionnalité              │ Où dans le code                      │
 #   ├─────────────────────────────┼──────────────────────────────────────┤
-#   │ LED qui respire (PWM)       │ led_bleue PWM sinus en étape 0      │
-#   │ LED qui clignote            │ led_rouge 2 Hz (étapes 1 à 8)       │
-#   │ Mode CONTINU                │ led_bleue, led_verte, led_jaune     │
-#   │ Mode MÉMORISÉ (SET/RESET)   │ led_rouge : SET rising[1],          │
-#   │                             │ RESET rising[9]. Buzzer rising[0].  │
+#   │ LED qui respire (PWM) [C]   │ led_bleue PWM sinus en étape 0      │
+#   │ LED qui clignote [M]       │ led_rouge 2 Hz (étapes 1 à 8)       │
+#   │ Mode CONTINU [C]           │ led_bleue, led_verte, led_jaune,    │
+#   │                             │ NeoPixel                            │
+#   │ Mode MÉMORISÉ [M]          │ led_rouge : SET rising[1],          │
+#   │ (SET/RESET)                 │ RESET rising[9]. Buzzer rising[0].  │
 #   │ Front montant d'entrée (fm) │ bpA=fm[0], bpD=fm[1], tp1=fm[2],   │
 #   │                             │ tp2=fm[3]                           │
 #   │ Front montant d'étape       │ rising[0]=bip, rising[1]=SET,       │
@@ -23,7 +24,7 @@
 #   │ Temporisation (tempo)       │ tempo[0]>500, tempo[1]>2000,        │
 #   │                             │ tempo[3]>1500, tempo[4]>1500,       │
 #   │                             │ tempo[9]>3000                       │
-#   │ Compteur d'étape (compt)    │ compt[3] et compt[4] : appuis bpA   │
+#   │ Compteur d'étape (compt)[C] │ compt[3] et compt[4] : appuis bpA   │
 #   │ Divergence ET               │ T1 → étapes 2 et 6 en parallèle    │
 #   │ Convergence ET              │ T8 ← étapes 5 et 8 simultanées     │
 #   │ Divergence OU               │ T2 (bpB) / T3 (bpC) depuis étape 2 │
@@ -45,34 +46,45 @@
 #   led_bleue (Pin  2) → respire en veille (PWM), fixe sinon   [CONTINU]
 #   led_verte (Pin 18) → branche gauche                        [CONTINU]
 #   led_jaune (Pin 19) → branche droite                        [CONTINU]
-#   led_rouge (Pin 23) → clignote 2 Hz étapes 1-8              [MÉMORISÉ]
-#   buzzer    (Pin  5) → bip au démarrage/retour                [MÉMORISÉ]
-#   NeoPixel  (Pin 26) → indicateur de choix/progression
+#   led_rouge (Pin 23) → clignote 2 Hz étapes 1-8              [M] SET/RESET
+#   buzzer    (Pin  5) → bip au démarrage/retour + double bip  [M] one-shot
+#   NeoPixel  (Pin 26) → indicateur de choix/progression       [C]
 #
 # GRAFCET (10 étapes) :
 #
-#   Étape 0 — Veille : LED bleue respire, bip buzzer (rising)
+#   Étape 0 — Veille
+#     [C] LED bleue respire (PWM sinus)
+#     [M] Bip buzzer 200 ms (rising[0])
 #       │ T0 : fm[0] + tempo > 500
-#   Étape 1 — Démarrage : LED bleue fixe, SET clignote rouge (rising)
+#   Étape 1 — Démarrage
+#     [C] LED bleue fixe ON
+#     [M] SET led_rouge clignote (rising[1])
 #       │ T1 : tempo > 2000 → DIVERGENCE ET
-#       ├────────────────────────────────────┐
-#   Étape 2 — Branche G : LED verte ON      Étape 6 — Branche D : LED jaune ON
-#       │ DIVERGENCE OU                          │ T6 : fm tp1
-#       ├───────────┐                        Étape 7 — Suite : NeoPixel vert
-#   T2:bpB      T3:bpC                          │ T7 : fm tp2
-#       │           │                        Étape 8 — Fin D (attente conv. ET)
-#   Étape 3      Étape 4                        │
-#   NP rouge     NP bleu                        │
-#   compt++      compt++                         │
-#       │ T4:1.5s   │ T5:1.5s                   │
-#       └───────────┘                            │
-#       CONVERGENCE OU                           │
-#       │                                        │
-#   Étape 5 — Fin G (attente conv. ET)           │
-#       └──────── T8 : CONVERGENCE ET ───────────┘
+#       ├──────────────────────────────────────────┐
+#   Étape 2 — Branche G                      Étape 6 — Branche D
+#     [C] LED verte ON                          [C] LED jaune ON
+#       │ DIVERGENCE OU                            │ T6 : fm tp1
+#       ├───────────┐                         Étape 7 — Suite D
+#   T2:bpB      T3:bpC                          [C] NeoPixel tout vert
+#       │           │                              │ T7 : fm tp2
+#   Étape 3      Étape 4                     Étape 8 — Fin D
+#     [C] NP rouge  [C] NP bleu                (attente conv. ET)
+#     [C] compt++   [C] compt++                    │
+#       │ T4:1.5s   │ T5:1.5s                     │
+#       └───────────┘                              │
+#       CONVERGENCE OU                             │
+#       │                                          │
+#   Étape 5 — Fin G                               │
+#     (attente conv. ET)                           │
+#       └──────── T8 : CONVERGENCE ET ─────────────┘
 #       │
-#   Étape 9 — Finale : RESET clignote, buzzer, 3s
+#   Étape 9 — Finale
+#     [M] RESET led_rouge (rising[9])
+#     [M] Buzzer double bip (rising[9])
+#     [C] NeoPixel tout jaune
 #       │ T9 : tempo > 3000 → retour Étape 0
+#
+#   Légende : [C] = continu (suit l'étape)  [M] = mémorisé (SET/RESET)
 #
 #   À tout moment : fm[1] (bpD) → reinitialiser()
 #
