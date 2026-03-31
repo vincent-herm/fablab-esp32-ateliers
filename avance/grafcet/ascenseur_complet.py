@@ -143,7 +143,7 @@ Monter     = False
 Bas        = False
 Haut       = False
 clignoter  = False    # mode MÉMORISÉ : led_rouge clignote pendant descente+montée
-nb_cycles  = 0        # compteur d'aller-retours (variable Python, pas g.compt)
+nb_cycles  = -1       # -1 = pas encore de vrai cycle (le rising[0] du démarrage ne compte pas)
 maintenance = False   # True après 5 cycles → bloque le départ
 
 niveau   = 0      # position simulée : 0 = haut, -100 = bas
@@ -204,13 +204,12 @@ def gerer_actions():
 
     # --- Compteur d'aller-retours ---
     # nb_cycles s'incrémente à chaque retour au repos (front montant étape 0)
-    # On utilise une variable Python (pas g.compt[0]) car g.compt est remis
-    # à 0 quand l'étape est désactivée — il ne survit pas entre les cycles.
-    # g.compt est fait pour compter des événements DANS une étape active.
-    # nb_cycles compte ENTRE les activations successives de l'étape 0.
+    # Initialisé à -1 : le rising[0] du démarrage fait passer à 0 (ne compte pas).
+    # Les vrais cycles commencent à 1.
     if g.rising[0]:
         nb_cycles += 1
-        print("Cycle", nb_cycles, "terminé")
+        if nb_cycles > 0:
+            print("Cycle", nb_cycles, "terminé")
         if nb_cycles >= 5:
             maintenance = True
             print(">>> MAINTENANCE : 5 cycles atteints, redémarrage bloqué")
@@ -274,7 +273,7 @@ while True:
     if g.fm[1]:
         g.reinitialiser()
         clignoter = False               # éteindre l'alarme
-        nb_cycles = 0                   # remettre le compteur à 0
+        nb_cycles = -1                  # -1 car reinit pose rising[0]
         maintenance = False             # débloquer
         led_rouge.value(0)              # éteindre la LED rouge immédiatement
         sortie_descente.value(0)        # couper le moteur descente
