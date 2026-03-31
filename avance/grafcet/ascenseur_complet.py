@@ -193,15 +193,16 @@ def gerer_actions():
     # --- Compteur d'étape (g.compt) ---
     # g.compt[i] compte les appuis sur bpA PENDANT l'étape i
     # Il est remis à 0 automatiquement quand l'étape est désactivée.
-    # C'est la différence avec nb_cycles (variable Python qui survit entre les étapes).
+    # Pour lire la valeur finale, utiliser g.compt_final[i] sur falling[i]
+    # (car g.compt[i] est déjà à 0 quand falling est posé).
     if g.etapes[1] and g.fm[0]:
         g.compt[1] += 1
     if g.etapes[2] and g.fm[0]:
         g.compt[2] += 1
-    if g.falling[1] and g.compt[1] > 0:
-        print("  Appuis bpA pendant descente :", g.compt[1])
-    if g.falling[2] and g.compt[2] > 0:
-        print("  Appuis bpA pendant montée :", g.compt[2])
+    if g.falling[1]:
+        print("  Appuis bpA pendant descente :", g.compt_final[1])
+    if g.falling[2]:
+        print("  Appuis bpA pendant montée :", g.compt_final[2])
 
     # --- Compteur d'aller-retours ---
     # nb_cycles s'incrémente à chaque retour au repos (front montant étape 0)

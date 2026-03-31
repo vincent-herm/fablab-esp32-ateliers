@@ -92,7 +92,8 @@ class Grafcet:
     Attributs principaux :
         g.etapes[i]  — True si l'étape i est active
         g.tempo[i]   — durée en ms depuis l'activation de l'étape i
-        g.compt[i]   — compteur libre, incrémentable dans gerer_actions()
+        g.compt[i]       — compteur libre, incrémentable dans gerer_actions()
+        g.compt_final[i] — dernière valeur de compt[i] avant reset (lisible sur falling)
         g.rising[i]  — True pendant 1 cycle à l'activation de l'étape i
         g.falling[i] — True pendant 1 cycle à la désactivation de l'étape i
         g.entrees[i] — état brut de l'entrée i (à remplir dans lire_entrees)
@@ -118,11 +119,12 @@ class Grafcet:
 
         self.nb_etapes = nb_etapes
 
-        self.etapes  = [False] * nb_etapes    # activation des étapes
-        self.tempo   = [0]     * nb_etapes    # timers (ms)
-        self.compt   = [0]     * nb_etapes    # compteurs libres
-        self.rising  = [False] * nb_etapes    # fronts montants d'étape
-        self.falling = [False] * nb_etapes    # fronts descendants d'étape
+        self.etapes      = [False] * nb_etapes  # activation des étapes
+        self.tempo       = [0]     * nb_etapes  # timers (ms)
+        self.compt       = [0]     * nb_etapes  # compteurs libres
+        self.compt_final = [0]     * nb_etapes  # dernière valeur de compt avant reset
+        self.rising      = [False] * nb_etapes  # fronts montants d'étape
+        self.falling     = [False] * nb_etapes  # fronts descendants d'étape
 
         # Étapes initiales (Règle 1) — mémorisées pour reinitialiser()
         if isinstance(etape_initiale, int):
@@ -198,10 +200,11 @@ class Grafcet:
 
         # Passe 2 : application
         for s in a_desactiver:
-            self.falling[s] = True
-            self.etapes[s]  = False
-            self.tempo[s]   = 0
-            self.compt[s]   = 0
+            self.falling[s]     = True
+            self.compt_final[s] = self.compt[s]  # sauvegarde avant reset
+            self.etapes[s]      = False
+            self.tempo[s]       = 0
+            self.compt[s]       = 0
 
         for s in a_activer:
             self.rising[s] = True
@@ -218,6 +221,7 @@ class Grafcet:
         for i in range(self.nb_etapes):
             if self.etapes[i] and i not in self._init:
                 self.falling[i] = True
+            self.compt_final[i] = self.compt[i]
             self.etapes[i] = False
             self.tempo[i]  = 0
             self.compt[i]  = 0
