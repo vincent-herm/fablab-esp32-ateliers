@@ -39,8 +39,8 @@
 #
 #   Mode MÉMORISÉ (SET/RESET) — la sortie conserve sa valeur :
 #     led_rouge  clignote à 2 Hz pendant la descente
-#     SET  : g.rising[1]  → clignoter = True   (entrée étape Descente)
-#     RESET: g.rising[2]  → clignoter = False  (entrée étape Montée)
+#     SET  : g.rising[1]   → clignoter = True   (entrée étape Descente)
+#     RESET: g.falling[2]  → clignoter = False  (fin étape Montée)
 #
 # CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
 #
@@ -185,8 +185,8 @@ def gerer_actions():
     # clignoter est SET à l'entrée de l'étape Descente,
     # et RESET à l'entrée de l'étape Montée.
     # La variable conserve sa valeur entre les deux fronts.
-    if g.rising[1]:  clignoter = True    # SET : début descente → alarme ON
-    if g.rising[2]:  clignoter = False   # RESET : début montée → alarme OFF
+    if g.rising[1]:   clignoter = True    # SET : début descente → alarme ON
+    if g.falling[2]:  clignoter = False  # RESET : fin de montée → alarme OFF
 
 
 def affecter_sorties():
