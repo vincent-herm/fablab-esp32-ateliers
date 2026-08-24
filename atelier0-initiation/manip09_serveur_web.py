@@ -363,3 +363,22 @@ while True:
 
     finally:
         conn.close()
+
+# -----------------------------------------------------------------------
+# VARIANTE — LED EXTERNE (montage sur breadboard)
+#
+# La LED intégrée du GPIO 2 est petite et peu visible en plein jour.
+# Pour un rendu bien plus net, câbler une LED externe sur le même GPIO :
+#
+#   GPIO 2 ──── résistance 220 Ω ──── LED (patte longue = +)
+#                                     LED (patte courte) ──── GND
+#
+# Aucune modification du code n'est nécessaire : le GPIO 2 pilote
+# les deux en même temps.
+#
+# EXPÉRIENCES À TESTER :
+#   - Changer le nom du réseau : SSID = "ESP32-TonPrenom"
+#   - Modifier le titre de la page dans page_html()
+#   - Passer le rafraîchissement de la température de 3 s à 1 s
+#   - Ajouter un bouton "clignoter" qui fait clignoter la LED 5 fois
+# -----------------------------------------------------------------------
