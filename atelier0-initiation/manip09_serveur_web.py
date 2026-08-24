@@ -40,7 +40,7 @@ led_allumee = False
 # --- Point d'accès WiFi ---
 ap = network.WLAN(network.AP_IF)
 ap.active(True)
-ap.config(essid=SSID, password=PASSWORD)
+ap.config(essid=SSID, password=PASSWORD, authmode=network.AUTH_WPA_WPA2_PSK)
 print("Réseau WiFi :", SSID)
 print("Adresse IP  :", ap.ifconfig()[0])
 
@@ -315,46 +315,51 @@ print("Serveur démarré — http://192.168.4.1")
 
 while True:
     conn, addr = s.accept()
-    request = conn.recv(1024).decode()
-    ligne   = request.split('\r\n')[0]   # première ligne uniquement
+    try:
+        request = conn.recv(1024).decode()
+        ligne   = request.split('\r\n')[0]   # première ligne uniquement
 
-    if "GET /on" in ligne:
-        led.duty(pct_to_duty(luminosite))
-        led_allumee = True
-        print("LED allumée")
-        conn.send("HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n")
+        if "GET /on" in ligne:
+            led.duty(pct_to_duty(luminosite))
+            led_allumee = True
+            print("LED allumée")
+            conn.send("HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n")
 
-    elif "GET /off" in ligne:
-        led.duty(0)
-        led_allumee = False
-        print("LED éteinte")
-        conn.send("HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n")
+        elif "GET /off" in ligne:
+            led.duty(0)
+            led_allumee = False
+            print("LED éteinte")
+            conn.send("HTTP/1.1 303 See Other\r\nLocation: /\r\nConnection: close\r\n\r\n")
 
-    elif "GET /dim" in ligne:
-        # Extraire la valeur : "GET /dim?v=75 HTTP/1.1" → 75
-        try:
-            v = int(ligne.split("v=")[1].split(" ")[0])
-            v = max(0, min(100, v))
-            luminosite  = v
-            led_allumee = (v > 0)
-            led.duty(pct_to_duty(v))
-            print(f"Luminosité : {v}%")
-        except Exception:
-            pass
-        conn.send("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")
+        elif "GET /dim" in ligne:
+            # Extraire la valeur : "GET /dim?v=75 HTTP/1.1" → 75
+            try:
+                v = int(ligne.split("v=")[1].split(" ")[0])
+                v = max(0, min(100, v))
+                luminosite  = v
+                led_allumee = (v > 0)
+                led.duty(pct_to_duty(v))
+                print(f"Luminosité : {v}%")
+            except Exception:
+                pass
+            conn.send("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")
 
-    elif "GET /temp" in ligne:
-        t = get_temp()
-        conn.send(f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{t}")
+        elif "GET /temp" in ligne:
+            t = get_temp()
+            conn.send(f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{t}")
 
-    elif "GET / " in ligne:
-        html = page_html(led_allumee, luminosite)
-        conn.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n")
-        # Envoi par morceaux de 512 octets (la page est trop grande pour un seul send)
-        for i in range(0, len(html), 512):
-            conn.send(html[i:i + 512])
+        elif "GET / " in ligne:
+            html = page_html(led_allumee, luminosite)
+            conn.send("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n")
+            # Envoi par morceaux de 512 octets (la page est trop grande pour un seul send)
+            for i in range(0, len(html), 512):
+                conn.send(html[i:i + 512])
 
-    else:
-        conn.send("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
+        else:
+            conn.send("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")
 
-    conn.close()
+    except OSError:
+        pass   # connexion coupée par le client — normal sur mobile
+
+    finally:
+        conn.close()
