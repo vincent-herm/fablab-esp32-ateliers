@@ -37,8 +37,9 @@ while True:
 
     sleep(0.1)                       # chaque tour dure 0,1 seconde
 
-    # Décrémenter le compteur (sans passer en négatif)
-    compt -= (compt > 0)             # astuce : (compt > 0) vaut 1 ou 0
+    # Décrémenter le compteur, sans jamais passer en négatif
+    if compt > 0:
+        compt -= 1
 
 # -----------------------------------------------------------------------
 # COMMENT ÇA MARCHE :
@@ -51,10 +52,16 @@ while True:
 #
 # Si on appuie à compt = 5, le compteur remonte à 20 → relance le cycle.
 #
-# L'astuce "compt -= (compt > 0)" :
-#   Si compt > 0, l'expression vaut True (= 1), on soustrait 1.
-#   Si compt == 0, l'expression vaut False (= 0), on soustrait 0.
-#   → Le compteur ne descend jamais en dessous de 0.
+# POURQUOI LE TEST "if compt > 0" :
+#   Sans lui, le compteur continuerait à descendre : -1, -2, -3...
+#   La LED resterait éteinte (le test compt > 0 serait faux), mais il
+#   faudrait ensuite remonter depuis très loin pour la rallumer.
+#   Le test bloque donc le compteur à 0.
+#
+#   Variante compacte que tu croiseras parfois :
+#       compt -= (compt > 0)
+#   Elle fonctionne car en Python True vaut 1 et False vaut 0.
+#   C'est plus court, mais nettement moins lisible.
 #
 # VARIANTES À ESSAYER :
 #   compt = 50   →  5 secondes d'éclairage
