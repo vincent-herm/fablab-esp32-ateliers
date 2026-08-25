@@ -148,9 +148,10 @@ def temperature_cpu():
 # =============================================================================
 # NeoPixel — modes d'affichage
 # =============================================================================
-neo_mode    = "off"
-neo_couleur = (0, 80, 255)
-neo_pos     = 0
+neo_mode     = "off"
+neo_couleur  = (0, 80, 255)
+neo_pos      = 0
+_neo_dernier = 0
 
 
 def roue(pos):
@@ -180,9 +181,17 @@ def neo_rafraichir(valeur_jauge=0):
         for i in range(NB_PIXELS):
             np[i] = neo_couleur if i < allumees else (0, 0, 0)
     elif neo_mode == "arc":
+        # L'avancement suit le TEMPS ECOULE, pas le nombre d'appels : la
+        # vitesse du defilement reste la meme quel que soit le rythme
+        # d'interrogation de la page (~16 pas par seconde).
+        global _neo_dernier
+        maintenant = time.ticks_ms()
+        ecoule = time.ticks_diff(maintenant, _neo_dernier)
+        if ecoule > 55:
+            neo_pos = (neo_pos + max(1, ecoule // 60)) % 256
+            _neo_dernier = maintenant
         for i in range(NB_PIXELS):
             np[i] = roue((i * 32 + neo_pos) % 256)
-        neo_pos = (neo_pos + 8) % 256
     np.write()
 
 
@@ -269,7 +278,7 @@ print()
 # =============================================================================
 def page_html():
     """Genere le tableau de bord. Les valeurs sont ensuite mises a jour
-    en direct par le JavaScript, qui interroge /data toutes les 500 ms."""
+    en direct par le JavaScript, qui interroge /data toutes les 150 ms."""
 
     cellules = "".join(
         f'<div class="etat"><div class="etat-nom">{nom}</div>'
@@ -460,7 +469,7 @@ def page_html():
     <div class="card-label">Boutons et touches</div>
     <div class="etats" id="etats">{cellules}</div>
     <p style="font-size:0.65rem;color:#475569;margin-top:12px;text-align:center">
-      Boutons actifs a l'etat HAUT &middot; touche detectee sous 270
+      Boutons actifs a l'etat HAUT &middot; touche : ~270 au repos, ~30 au contact
     </p>
   </div>
 
@@ -501,14 +510,22 @@ def page_html():
     <span id="voyant" style="display:inline-block;width:7px;height:7px;
       border-radius:50%;background:#475569;margin-right:6px;
       vertical-align:middle"></span><span id="liaison">connexion...</span>
+    &nbsp;&middot;&nbsp;cycle <span id="cycle">-</span>
   </footer>
 
 <script>
   var modeNeo = 'off';
 
-  // Seuil de detection tactile : au repos la valeur est haute (500-700),
-  // elle chute quand le doigt se pose. En dessous du seuil = touche.
-  var SEUIL_TOUCHE = 270;
+  // --- Detection tactile ---------------------------------------------
+  // Mesures relevees sur la carte : ~270 au repos, ~30 doigt pose.
+  // On bascule au milieu, avec une HYSTERESIS : il faut descendre sous
+  // 120 pour allumer, mais remonter au-dessus de 180 pour eteindre.
+  // Cette zone morte de 60 evite le clignotement quand la valeur hesite
+  // autour du seuil — meme principe que les deux seuils de la LDR dans
+  // l'atelier Lumiere automatique.
+  var TOUCHE_ON  = 120;   // en dessous -> le doigt est pose
+  var TOUCHE_OFF = 180;   // au dessus  -> le doigt est retire
+  var etatTouche = {{}};  // memorise l'etat de chaque pastille
 
   function basculeLed(i) {{
     fetch('/led?n=' + i).catch(function() {{}});
@@ -554,7 +571,7 @@ def page_html():
     fetch('/oled?t=' + encodeURIComponent(t)).catch(function() {{}});
   }}
 
-  // --- Rafraichissement des entrees, 2 fois par seconde ---
+  // --- Rafraichissement des entrees ---
   var echecs = 0;
 
   function liaison(ok, message) {{
@@ -562,7 +579,8 @@ def page_html():
     document.getElementById('liaison').textContent = message;
   }}
 
-  function rafraichir() {{
+  function rafraichir(termine) {{
+    if (!termine) termine = function() {{}};
     fetch('/data')
       .then(function(r) {{
         if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -587,9 +605,13 @@ def page_html():
         // Touches : le voyant s'allume quand la valeur passe sous le seuil.
         // La valeur reste affichee sous le voyant, pour pouvoir regler SEUIL.
         d.touches.forEach(function(t) {{
-          document.getElementById('e-' + t[0])
-                  .classList.toggle('allume', t[1] < SEUIL_TOUCHE);
-          document.getElementById('v-' + t[0]).textContent = t[1];
+          var nom = t[0], v = t[1];
+          if (v < TOUCHE_ON)       etatTouche[nom] = true;
+          else if (v > TOUCHE_OFF) etatTouche[nom] = false;
+          // entre les deux : on garde l'etat precedent
+          document.getElementById('e-' + nom)
+                  .classList.toggle('allume', etatTouche[nom] === true);
+          document.getElementById('v-' + nom).textContent = v;
         }});
 
         // Analogique (9 bits : 0 a 511)
@@ -604,10 +626,12 @@ def page_html():
           maj('ds', d.ds, 50, d.ds.toFixed(1) + '\\u00B0');
         }}
         maj('cpu', d.cpu, 80, d.cpu.toFixed(1) + '\\u00B0');
+        termine();
       }})
       .catch(function(e) {{
         echecs++;
         liaison(false, 'pas de reponse (' + echecs + ') : ' + e.message);
+        termine();
       }});
   }}
 
@@ -617,9 +641,24 @@ def page_html():
     document.getElementById('v-' + id).textContent = texte;
   }}
 
+  // --- Cadence -------------------------------------------------------
+  // On ENCHAINE les interrogations au lieu d'utiliser setInterval :
+  // la suivante ne part qu'une fois la precedente terminee. Avec
+  // setInterval, une carte momentanement lente voit les requetes
+  // s'empiler, et le retard grandit sans jamais se resorber.
+  var PERIODE = 150;        // millisecondes entre deux mesures
+
+  function boucle() {{
+    var depart = Date.now();
+    rafraichir(function() {{
+      var cycle = Date.now() - depart;
+      document.getElementById('cycle').textContent = cycle + ' ms';
+      setTimeout(boucle, Math.max(0, PERIODE - cycle));
+    }});
+  }}
+
   neo('off');
-  rafraichir();
-  setInterval(rafraichir, 500);
+  boucle();
 </script>
 
 </body>
@@ -752,8 +791,8 @@ except KeyboardInterrupt:
 # =============================================================================
 # EXPERIENCES A TESTER
 #   - Change le nom du reseau : SSID = "ESP32-TonPrenom"
-#   - Passe le rafraichissement de 500 ms a 2000 ms (setInterval en bas de
-#     la page) : les mesures deviennent saccadees, mais la carte respire
+#   - Change PERIODE (en bas de la page) : 60 ms pour du temps reel,
+#     500 ms pour menager la carte. Le cycle reel s'affiche en pied de page.
 #   - Fais piloter la couleur du bandeau par la photoresistance
 #   - Ajoute une alarme : le buzzer sonne si le DS18B20 depasse 30 degres
 #   - Escape game : n'affiche le message sur l'OLED que si bpA est appuye

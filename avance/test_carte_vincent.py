@@ -190,7 +190,8 @@ time.sleep_ms(300)
 # --- TEST 5 : entrees tactiles ---------------------------------------------
 titre(5, "Entrees tactiles tp1 (GPIO 15) et tp2 (GPIO 4)")
 print("Poser le doigt sur chaque pastille. La valeur CHUTE au contact.")
-print("Repere : au repos ~500-700, doigt pose < 270 (seuil retenu).")
+print("Repere sur cette carte : ~270 au repos, ~30 doigt pose.")
+print("Le tableau de bord bascule a 120 (allumage) / 180 (extinction).")
 print("Appuyer sur bpA pour passer a la suite.\n")
 while bpA.value() == 0:
     v = [f"{nom}:{tp.read():4d}" for nom, tp in touches]
