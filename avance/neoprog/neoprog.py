@@ -32,7 +32,7 @@ class NeoProgressif:
         """
         Initialise le bandeau NeoPixel.
 
-        :param pin:     numéro de broche GPIO (ex: 26 sur la carte ENIM)
+        :param pin:     numéro de broche GPIO (ex: 26 sur la carte Vincent)
         :param n:       nombre de LEDs du bandeau (défaut : 8)
         :param coef:    exposant de correction gamma (défaut : 1.8)
                         — compense la perception non-linéaire de l'œil

@@ -22,7 +22,7 @@
 #
 # Fichiers nécessaires sur l'ESP32 :
 #   grafcet_complet.py  (moteur GRAFCET)
-#   essential.py        (déclarations carte ENIM — sans OLED)
+#   essential.py        (déclarations carte Vincent — sans OLED)
 # =============================================================================
 
 from machine import Pin
@@ -30,14 +30,14 @@ from grafcet_complet import Grafcet
 from essential import synchro_ms, bpA, bpB, bpC, bpD, led_bleue, led_verte, led_jaune, led_rouge
 
 
-# --- Entrées (carte ENIM) ---
+# --- Entrées (carte Vincent) ---
 BP1 = bpA    # démarrage                   → broche 25
 BP2 = bpB    # lancement séquence parallèle → broche 34
 BP3 = bpC    # fin branche droite           → broche 39
 BP4 = bpD    # convergence                  → broche 36
 
 
-# --- Sorties (carte ENIM) ---
+# --- Sorties (carte Vincent) ---
 Led_Bleu_pin   = led_bleue   # broche 2
 Led_Rouge_pin  = led_rouge   # broche 23
 Led_Jaune_pin  = led_jaune   # broche 19  ← utilisée pour Led Orange (pas de LED orange)
@@ -65,7 +65,7 @@ T = [
 
 Led_Bleu   = False
 Led_Rouge  = False
-Led_Orange = False   # → led_jaune sur la carte ENIM
+Led_Orange = False   # → led_jaune sur la carte Vincent
 Led_Verte  = False
 
 transitions = [False] * len(T)

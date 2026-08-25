@@ -1,4 +1,4 @@
-# Test rapide — Lecteur RFID RC522 sur carte ENIM (nouveau câblage)
+# Test rapide — Lecteur RFID RC522 sur carte Vincent (nouveau câblage)
 # -----------------------------------------------------------------------
 # Lit l'UID des badges présentés devant le lecteur et l'affiche.
 # Permet de vérifier que le câblage fonctionne et de découvrir
@@ -21,7 +21,7 @@ except ImportError:
     print("Fichier mfrc522.py manquant — copier sur l'ESP32 via Thonny")
     raise SystemExit
 
-# SPI1 (HSPI) avec le nouveau câblage carte ENIM
+# SPI1 (HSPI) avec le nouveau câblage carte Vincent
 spi  = SPI(1, baudrate=1000000, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
 rfid = MFRC522(spi, gpioRst=22, gpioCs=5)
 

@@ -5,11 +5,11 @@
 #
 # PRINCIPE D'INTÉGRATION :
 #   grafcet.py   → moteur pur, aucune dépendance matérielle (ne jamais modifier)
-#   essential.py → déclarations matérielles de la carte ENIM (ne jamais modifier)
+#   essential.py → déclarations matérielles de la carte Vincent (ne jamais modifier)
 #   ce fichier   → fait le lien entre les deux : importe sélectivement ce qu'il
 #                  utilise depuis essential, et confie la logique à grafcet.py
 #
-# CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
+# CORRESPONDANCE CARTE VINCENT ↔ ASCENSEUR :
 #
 #   Entrées physiques (capteurs / boutons) :
 #     bpA  (Pin 25) → bouton Start       (lancer le cycle)
@@ -65,7 +65,7 @@ from essential import (
 )
 
 # --- Broches libres pour un vrai moteur (optionnel) ---
-# Ces broches (12 et 13) sont libres sur la carte ENIM.
+# Ces broches (12 et 13) sont libres sur la carte Vincent.
 # Les connecter à un driver moteur ou un relais pour une application réelle.
 sortie_descente = Pin(12, Pin.OUT)   # commande réelle Descente
 sortie_montee   = Pin(13, Pin.OUT)   # commande réelle Montée
@@ -183,12 +183,12 @@ def gerer_actions():
 
 # =============================================================================
 # PHASE 2 — AFFECTER LES SORTIES
-# Applique les variables logiques sur le matériel de la carte ENIM.
+# Applique les variables logiques sur le matériel de la carte Vincent.
 # =============================================================================
 
 def affecter_sorties():
 
-    # --- LEDs de la carte ENIM (simulation visuelle) ---
+    # --- LEDs de la carte Vincent (simulation visuelle) ---
     led_bleue.value(g.etapes[0])    # bleue allumée = repos
     led_verte.value(Descendre)      # verte allumée = descente en cours
     led_jaune.value(Monter)         # jaune allumée = montée en cours
@@ -204,7 +204,7 @@ def affecter_sorties():
 
 # =============================================================================
 # PHASE 3 — LIRE LES ENTRÉES
-# Lit les boutons de la carte ENIM et met à jour les variables logiques.
+# Lit les boutons de la carte Vincent et met à jour les variables logiques.
 # =============================================================================
 
 def lire_entrees():

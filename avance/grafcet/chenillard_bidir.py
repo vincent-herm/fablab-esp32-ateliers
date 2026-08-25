@@ -1,7 +1,7 @@
 # =============================================================================
 # chenillard_bidir.py — Chenillard NeoPixel bidirectionnel avec TouchPads
 # =============================================================================
-# GRAFCET 4 étapes sur carte ENIM.
+# GRAFCET 4 étapes sur carte Vincent.
 #
 # GRAFCET :
 #

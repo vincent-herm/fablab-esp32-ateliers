@@ -1,7 +1,7 @@
 # =============================================================================
 # ascenseur_complet.py — Exemple de référence GRAFCET complet
 # =============================================================================
-# Ascenseur simulé sur carte ENIM utilisant TOUTES les fonctionnalités
+# Ascenseur simulé sur carte Vincent utilisant TOUTES les fonctionnalités
 # du moteur grafcet_complet.py. Cet exemple sert de référence pédagogique
 # pour le cours avancé GRAFCET du Fablab.
 #
@@ -41,7 +41,7 @@
 #   │                             │ que les réceptivités pures           │
 #   └─────────────────────────────┴──────────────────────────────────────┘
 #
-# CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
+# CORRESPONDANCE CARTE VINCENT ↔ ASCENSEUR :
 #
 #   Entrées :
 #     bpA  (Pin 25) → bouton Start (front montant détecté)
@@ -87,7 +87,7 @@
 #
 # Fichiers nécessaires sur l'ESP32 :
 #   grafcet_complet.py  (moteur GRAFCET)
-#   essential.py        (déclarations carte ENIM — sans OLED)
+#   essential.py        (déclarations carte Vincent — sans OLED)
 # =============================================================================
 
 from machine import Pin

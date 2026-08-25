@@ -1,9 +1,9 @@
 # =============================================================================
-# ascenseur_enim_led.py — Simulation d'ascenseur sur carte ENIM (sans OLED)
+# ascenseur_enim_led.py — Simulation d'ascenseur sur carte Vincent (sans OLED)
 # =============================================================================
 # Version allégée : affichage uniquement sur le bandeau NeoPixel.
 #
-# CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
+# CORRESPONDANCE CARTE VINCENT ↔ ASCENSEUR :
 #
 #   Entrées :
 #     bpA  (Pin 25) → bouton Start

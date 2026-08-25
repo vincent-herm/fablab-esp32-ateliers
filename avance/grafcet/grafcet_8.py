@@ -1,7 +1,7 @@
 # =============================================================================
 # grafcet_8.py — Divergence ET / Convergence ET
 # =============================================================================
-# GRAFCET 7 étapes sur carte ENIM.
+# GRAFCET 7 étapes sur carte Vincent.
 #
 # GRAFCET :
 #

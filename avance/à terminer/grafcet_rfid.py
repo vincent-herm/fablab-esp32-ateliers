@@ -1,7 +1,7 @@
 # =============================================================================
 # grafcet_rfid.py — Sas d'accès RFID / 3 branches parallèles
 # =============================================================================
-# GRAFCET 8 étapes sur carte ENIM + lecteur RFID RC522.
+# GRAFCET 8 étapes sur carte Vincent + lecteur RFID RC522.
 #
 # GRAFCET :
 #

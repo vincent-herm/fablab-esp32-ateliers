@@ -2,7 +2,7 @@
 # demo_complet.py — Démonstration GRAFCET complète (10 étapes)
 # =============================================================================
 # Exemple pédagogique utilisant TOUTES les fonctionnalités du moteur
-# grafcet_complet.py sur carte ENIM. Pas de système réaliste — c'est
+# grafcet_complet.py sur carte Vincent. Pas de système réaliste — c'est
 # un parcours qui montre chaque feature du GRAFCET.
 #
 # FONCTIONNALITÉS DÉMONTRÉES :

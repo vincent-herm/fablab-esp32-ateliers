@@ -1,12 +1,12 @@
 # =============================================================================
-# ascenseur_enim_v2.py — Ascenseur ENIM avec affichage NeoPixel progressif
+# ascenseur_enim_v2.py — Ascenseur carte Vincent avec affichage NeoPixel progressif
 # =============================================================================
 # Version 2 : utilise NeoProgressif pour un affichage fluide du niveau.
 #
 # Fichiers nécessaires sur l'ESP32 :
 #   grafcet.py    (moteur GRAFCET)
 #   neoprog.py    (affichage NeoPixel progressif)
-#   essential.py  (déclarations carte ENIM — sans OLED)
+#   essential.py  (déclarations carte Vincent — sans OLED)
 #
 # GRAFCET (inchangé) :
 #   Étape 0 — Repos     │ T0 : bpA ET tempo[0] > 200 ms

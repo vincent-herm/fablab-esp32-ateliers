@@ -24,7 +24,7 @@
 #   4. g.fm[0] dans calculer_transitions → on utilise le front au lieu du niveau
 #      (remplace : Start and tempo[0] > 200)
 #
-# CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
+# CORRESPONDANCE CARTE VINCENT ↔ ASCENSEUR :
 #
 #   Entrées :
 #     bpA  (Pin 25) → bouton Start (front montant détecté)
@@ -57,7 +57,7 @@
 #
 # Fichiers nécessaires sur l'ESP32 :
 #   grafcet.py    (moteur GRAFCET)
-#   essential.py  (déclarations carte ENIM — sans OLED)
+#   essential.py  (déclarations carte Vincent — sans OLED)
 # =============================================================================
 
 from machine import Pin

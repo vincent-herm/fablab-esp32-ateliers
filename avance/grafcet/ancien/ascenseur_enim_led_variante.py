@@ -49,7 +49,7 @@
 #     ⚠ Attention : si le programme plante entre SET et RESET, la sortie
 #     reste dans son dernier état.
 #
-# CORRESPONDANCE CARTE ENIM ↔ ASCENSEUR :
+# CORRESPONDANCE CARTE VINCENT ↔ ASCENSEUR :
 #
 #   Entrées :
 #     bpA  (Pin 25) → bouton Start
@@ -83,7 +83,7 @@
 #
 # Fichiers nécessaires sur l'ESP32 :
 #   grafcet_variante.py  (moteur GRAFCET variante IEC 60848)
-#   essential.py         (déclarations carte ENIM — sans OLED)
+#   essential.py         (déclarations carte Vincent — sans OLED)
 # =============================================================================
 
 from machine import Pin
