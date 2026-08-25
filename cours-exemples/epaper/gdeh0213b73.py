@@ -105,7 +105,11 @@ class EPD(framebuf.FrameBuffer):
             self.__width  = EPD_HEIGHT
             self.__height = EPD_WIDTH
 
-        size = self.__width * self.__height // 8
+        # Nombre d'octets par ligne : framebuf arrondit toujours la largeur
+        # au multiple de 8 superieur. En paysage (250 px), une ligne occupe
+        # donc 32 octets et non 31,25 — sans cet arrondi le tampon est trop
+        # petit et framebuf leve un ValueError sans message.
+        size = ((self.__width + 7) // 8) * self.__height
         self.buffer = memoryview(bytearray(size))
         super().__init__(self.buffer, self.__width, self.__height, framebuf.MONO_HLSB)
         self.hard_reset()
