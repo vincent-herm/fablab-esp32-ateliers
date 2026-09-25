@@ -3,24 +3,24 @@
 #
 # Le défi de la page « Toi de jouer » : un point rouge fait des allers-retours
 # et laisse derrière lui une traînée qui s'éteint doucement (effet K2000).
-# BOOT change la vitesse (lente / moyenne / rapide).
+# Le bouton change la vitesse (lente / moyenne / rapide).
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED (rien de plus)
-# Connexions : DATA → GPIO26, bouton BOOT = GPIO0
+# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
 N = 8
-np = NeoPixel(Pin(26, Pin.OUT), N)
-bp = Pin(0, Pin.IN, Pin.PULL_UP)
+np = NeoPixel(Pin(18, Pin.OUT), N)
+bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
 VITESSES = [("lente", 120), ("moyenne", 60), ("rapide", 25)]
 vitesse_idx = 1
 
 pos, sens = 0, 1
-print("Appuie sur BOOT pour changer de vitesse")
+print("Appuie sur le bouton pour changer de vitesse")
 
 while True:
     # 1) toutes les LEDs s'atténuent (on garde les 2/3 de leur valeur)

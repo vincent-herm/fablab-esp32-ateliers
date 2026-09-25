@@ -1,19 +1,19 @@
 # Atelier 02 — Aller plus loin n°1 : la LED qui avance à chaque appui
 # Fablab Ardèche — MicroPython
 #
-# Chaque appui sur BOOT fait avancer d'un cran la LED allumée.
+# Chaque appui sur le bouton fait avancer d'un cran la LED allumée.
 # Sa couleur change à chaque pas (arc-en-ciel).
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED (rien de plus)
-# Connexions : DATA → GPIO26, bouton BOOT = GPIO0 (déjà sur la carte)
+# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
 N = 8
-np = NeoPixel(Pin(26, Pin.OUT), N)
-bp = Pin(0, Pin.IN, Pin.PULL_UP)
+np = NeoPixel(Pin(18, Pin.OUT), N)
+bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
 
 def roue(pos):
@@ -39,7 +39,7 @@ def afficher(i):
 
 position = 0
 afficher(position)
-print("Appuie sur BOOT pour faire avancer la LED")
+print("Appuie sur le bouton pour faire avancer la LED")
 
 while True:
     if bp.value() == 0:                 # bouton enfoncé (actif à l'état bas)

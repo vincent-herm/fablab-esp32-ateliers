@@ -1,12 +1,12 @@
 # Atelier 02 — Aller plus loin n°4 : dé électronique
 # Fablab Ardèche — MicroPython
 #
-# Appuie sur BOOT pour lancer le dé. Le bandeau tire des valeurs au hasard
+# Appuie sur le bouton pour lancer le dé. Le bandeau tire des valeurs au hasard
 # de plus en plus lentement (comme un dé qui ralentit), puis s'arrête sur
 # le résultat : le nombre de LEDs allumées, de 1 à 6.
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED (rien de plus)
-# Connexions : DATA → GPIO26, bouton BOOT = GPIO0
+# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -14,8 +14,8 @@ import time
 import random
 
 N = 8
-np = NeoPixel(Pin(26, Pin.OUT), N)
-bp = Pin(0, Pin.IN, Pin.PULL_UP)
+np = NeoPixel(Pin(18, Pin.OUT), N)
+bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
 
 def afficher(valeur, couleur):
@@ -38,7 +38,7 @@ def lancer():
 
 
 afficher(0, (0, 0, 0))
-print("Appuie sur BOOT pour lancer le dé")
+print("Appuie sur le bouton pour lancer le dé")
 
 while True:
     if bp.value() == 0:

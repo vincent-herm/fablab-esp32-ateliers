@@ -1,20 +1,20 @@
 # Atelier 02 — Aller plus loin n°2 : compteur binaire
 # Fablab Ardèche — MicroPython
 #
-# Chaque appui court sur BOOT ajoute 1. Le bandeau affiche le nombre
+# Chaque appui court sur le bouton ajoute 1. Le bandeau affiche le nombre
 # en binaire : LED allumée = bit à 1. LED 0 = poids faible (1), LED 7 = 128.
 # Appui long (plus de 0,8 s) : remise à zéro.
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED (rien de plus)
-# Connexions : DATA → GPIO26, bouton BOOT = GPIO0
+# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
 N = 8
-np = NeoPixel(Pin(26, Pin.OUT), N)
-bp = Pin(0, Pin.IN, Pin.PULL_UP)
+np = NeoPixel(Pin(18, Pin.OUT), N)
+bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
 
 def afficher(valeur):

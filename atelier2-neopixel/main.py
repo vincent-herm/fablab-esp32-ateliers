@@ -5,7 +5,7 @@
 # Les boutons changent l'animation en cours.
 #
 # Matériel : ESP32, bandeau NeoPixel 8 LED
-# Connexions : DATA → GPIO26, BP_A → GPIO0 (PULL_UP)
+# Connexions : DATA → GPIO18, BP_A → GPIO0 (PULL_UP)
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -13,7 +13,7 @@ import time, random
 
 # --- Configuration ---
 N       = 8        # nombre de LEDs
-NP_PIN  = 26
+NP_PIN  = 18
 BP_PIN  = 0        # bouton BOOT (PULL_UP)
 
 np = NeoPixel(Pin(NP_PIN, Pin.OUT), N)

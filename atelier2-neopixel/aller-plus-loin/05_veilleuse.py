@@ -2,19 +2,19 @@
 # Fablab Ardèche — MicroPython
 #
 # Tout le bandeau « respire » (la luminosité monte et descend en douceur).
-#   - appui COURT sur BOOT : couleur suivante
+#   - appui COURT sur le bouton : couleur suivante
 #   - appui LONG (plus de 0,6 s) : intensité maximale suivante (25 %, 50 %, 100 %)
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED (rien de plus)
-# Connexions : DATA → GPIO26, bouton BOOT = GPIO0
+# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
 N = 8
-np = NeoPixel(Pin(26, Pin.OUT), N)
-bp = Pin(0, Pin.IN, Pin.PULL_UP)
+np = NeoPixel(Pin(18, Pin.OUT), N)
+bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
 COULEURS = [
     ("orange", (255, 80, 0)),

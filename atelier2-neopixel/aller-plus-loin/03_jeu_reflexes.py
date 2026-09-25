@@ -2,13 +2,13 @@
 # Fablab Ardèche — MicroPython
 #
 # Un point bleu fait des allers-retours sur le bandeau. La LED du milieu
-# est repérée en vert. Appuie sur BOOT au moment précis où le point passe
+# est repérée en vert. Appuie sur le bouton au moment précis où le point passe
 # dessus (il devient alors turquoise) !
 #   - gagné : éclairs verts, et le point va plus vite
 #   - raté  : éclairs rouges, retour à la vitesse de départ
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED (rien de plus)
-# Connexions : DATA → GPIO26, bouton BOOT = GPIO0
+# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -19,8 +19,8 @@ CIBLE = N // 2
 DELAI_DEPART = 140      # ms entre deux pas : plus petit = plus rapide
 DELAI_MIN = 40
 
-np = NeoPixel(Pin(26, Pin.OUT), N)
-bp = Pin(0, Pin.IN, Pin.PULL_UP)
+np = NeoPixel(Pin(18, Pin.OUT), N)
+bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
 
 def tout_eteindre():
@@ -47,7 +47,7 @@ def eclairs(couleur):
 
 
 def attendre(delai):
-    """Attend delai ms. Renvoie True si BOOT est appuyé pendant ce temps."""
+    """Attend delai ms. Renvoie True si le bouton est appuyé pendant ce temps."""
     t0 = time.ticks_ms()
     while time.ticks_diff(time.ticks_ms(), t0) < delai:
         if bp.value() == 0:
@@ -59,7 +59,7 @@ def attendre(delai):
 delai = DELAI_DEPART
 score = 0
 pos, sens = 0, 1
-print("Appuie sur BOOT quand le point passe sur la LED verte")
+print("Appuie sur le bouton quand le point passe sur la LED verte")
 
 while True:
     afficher(pos)
