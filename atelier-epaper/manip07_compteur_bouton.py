@@ -1,4 +1,4 @@
-# Atelier 02 — E-paper — Manip 07 : un compteur avec le bouton BOOT
+# Atelier 02 — E-paper — Manip 07 : un compteur avec le bouton
 # Fablab Ardèche — MicroPython
 #
 # Chaque appui sur le bouton ajoute 1 et redessine le nombre en très gros.
@@ -7,15 +7,20 @@
 # pour garder l'image, mais un affichage lent.
 #
 # Matériel : carte LilyGo T5 V2.3 (écran e-paper déjà câblé)
-# Bouton : BOOT = GPIO0, déjà sur la carte.
+# Bouton : celui de la carte, sur GPIO39.
 
 from machine import Pin
 from gdeh0213b73 import init_epd, ROTATION_90
 import framebuf
 import time
 
-BOUTON = 0                            # GPIO0 : bouton BOOT
-bp = Pin(BOUTON, Pin.IN, Pin.PULL_UP)
+BOUTON = 39                           # GPIO39 : bouton de la carte T5
+bp = Pin(BOUTON, Pin.IN)              # GPIO39 n'a pas de résistance de rappel interne
+REPOS = bp.value()                    # état du bouton au repos, mesuré au démarrage
+
+
+def appuye():
+    return bp.value() != REPOS
 
 
 def big_text(epd, s, x, y, scale=2, c=1):
@@ -38,7 +43,7 @@ def texte_centre(epd, s, y, scale=2, c=1):
 def afficher(epd, valeur):
     epd.fill(0)
     epd.rect(0, 0, epd.width, epd.height, 1)
-    epd.text("Appuis sur BOOT :", 10, 10, 1)
+    epd.text("Appuis sur le bouton :", 10, 10, 1)
     texte_centre(epd, str(valeur), 40, scale=8)      # chiffres de 64 pixels
     epd.update()
 
@@ -48,13 +53,13 @@ def afficher(epd, valeur):
 epd = init_epd(rotation=ROTATION_90)
 compteur = 0
 afficher(epd, compteur)
-print("Appuie sur BOOT (l'écran met ~2 s à se mettre à jour)")
+print("Appuie sur le bouton (l'écran met ~2 s à se mettre à jour)")
 
 while True:
-    if bp.value() == 0:
+    if appuye():
         compteur += 1
         print("Compteur :", compteur)
         afficher(epd, compteur)
-        while bp.value() == 0:          # attendre le relâchement
+        while appuye():                 # attendre le relâchement
             time.sleep_ms(10)
     time.sleep_ms(20)

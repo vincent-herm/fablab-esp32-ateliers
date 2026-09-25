@@ -15,7 +15,7 @@ Le pilote de l'écran, `gdeh0213b73.py`, se trouve dans `../cours-exemples/epape
 | 10 min | Formes et motifs | `manip04_formes.py` |
 | 20 min | Badge nominatif | `manip05_badge.py` |
 | 15 min | Pixel art | `manip06_pixel_art.py` |
-| 15 min | Compteur avec le bouton BOOT | `manip07_compteur_bouton.py` |
+| 15 min | Compteur avec le bouton (GPIO39) | `manip07_compteur_bouton.py` |
 | 10 min | Questions, bonus (`../cours-exemples/epaper/payzac_fablab.py`) | |
 
 Page du site : https://fablab.opentek.fr/ateliers/epaper/
@@ -24,4 +24,4 @@ Page du site : https://fablab.opentek.fr/ateliers/epaper/
 
 - Police intégrée en ASCII pur : pas d'accents.
 - Rafraîchissement d'environ 2 s ; les appuis de bouton pendant ce temps sont perdus (manip 07).
-- Manip 07 : le bouton BOOT est supposé sur GPIO0. À vérifier sur la carte (constante `BOUTON`).
+- Manip 07 : le bouton de la carte est sur GPIO39, entrée seule sans résistance de rappel interne. Le programme mesure l'état de repos au démarrage, donc le sens du bouton n'a pas d'importance.
