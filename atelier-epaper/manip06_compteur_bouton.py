@@ -1,4 +1,4 @@
-# Atelier 02 — E-paper — Manip 07 : un compteur avec le bouton
+# Atelier 02 — E-paper — Manip 06 : un compteur avec le bouton
 # Fablab Ardèche — MicroPython
 #
 # Chaque appui sur le bouton ajoute 1 et redessine le nombre en très gros.

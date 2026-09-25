@@ -1,4 +1,4 @@
-# Atelier 02 — E-paper — Manip 06 : dessiner avec des caractères
+# Atelier 02 — E-paper — Bonus : dessiner avec des caractères
 # Fablab Ardèche — MicroPython
 #
 # Une image de 16 x 16 pixels est décrite par 16 chaînes de caractères :
