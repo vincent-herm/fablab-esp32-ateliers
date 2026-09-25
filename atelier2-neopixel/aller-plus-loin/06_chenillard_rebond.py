@@ -5,18 +5,18 @@
 # et laisse derrière lui une traînée qui s'éteint doucement (effet K2000).
 # Le bouton change la vitesse (lente / moyenne / rapide).
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
 # Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
-N = 8
+N = 16
 np = NeoPixel(Pin(18, Pin.OUT), N)
 bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
-VITESSES = [("lente", 120), ("moyenne", 60), ("rapide", 25)]
+VITESSES = [("lente", 80), ("moyenne", 40), ("rapide", 15)]
 vitesse_idx = 1
 
 pos, sens = 0, 1

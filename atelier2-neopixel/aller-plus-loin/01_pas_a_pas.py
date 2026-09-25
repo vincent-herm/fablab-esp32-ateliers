@@ -4,14 +4,14 @@
 # Chaque appui sur le bouton fait avancer d'un cran la LED allumée.
 # Sa couleur change à chaque pas (arc-en-ciel).
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
 # Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
-N = 8
+N = 16
 np = NeoPixel(Pin(18, Pin.OUT), N)
 bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
@@ -32,7 +32,7 @@ def roue(pos):
 def afficher(i):
     for k in range(N):
         np[k] = (0, 0, 0)
-    r, v, b = roue(i * 32)
+    r, v, b = roue(i * 16)
     np[i] = (r // 4, v // 4, b // 4)    # divisé par 4 : moins éblouissant
     np.write()
 

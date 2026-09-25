@@ -5,7 +5,7 @@
 # de plus en plus lentement (comme un dé qui ralentit), puis s'arrête sur
 # le résultat : le nombre de LEDs allumées, de 1 à 6.
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
 # Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
@@ -13,7 +13,7 @@ from neopixel import NeoPixel
 import time
 import random
 
-N = 8
+N = 16
 np = NeoPixel(Pin(18, Pin.OUT), N)
 bp = Pin(5, Pin.IN, Pin.PULL_UP)
 

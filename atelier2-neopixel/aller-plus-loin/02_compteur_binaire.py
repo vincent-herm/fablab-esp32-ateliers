@@ -3,16 +3,18 @@
 #
 # Chaque appui court sur le bouton ajoute 1. Le bandeau affiche le nombre
 # en binaire : LED allumée = bit à 1. LED 0 = poids faible (1), LED 7 = 128.
+# Le compteur fait 8 bits : les LEDs 8 à 15 restent éteintes (voir BITS).
 # Appui long (plus de 0,8 s) : remise à zéro.
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
 # Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
-N = 8
+N = 16
+BITS = 8                # nombre de bits comptés (8 → de 0 à 255)
 np = NeoPixel(Pin(18, Pin.OUT), N)
 bp = Pin(5, Pin.IN, Pin.PULL_UP)
 
@@ -24,7 +26,7 @@ def afficher(valeur):
         else:
             np[i] = (0, 0, 0)
     np.write()
-    print(valeur, "=", "{:08b}".format(valeur))
+    print(valeur, "=", "{:0{}b}".format(valeur, BITS))
 
 
 valeur = 0
@@ -41,7 +43,7 @@ while True:
         if duree > 800:
             valeur = 0
         else:
-            valeur = (valeur + 1) % 256
+            valeur = (valeur + 1) % (1 << BITS)
         afficher(valeur)
         time.sleep_ms(30)
     time.sleep_ms(10)

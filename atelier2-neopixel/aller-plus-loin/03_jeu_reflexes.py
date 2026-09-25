@@ -7,17 +7,17 @@
 #   - gagné : éclairs verts, et le point va plus vite
 #   - raté  : éclairs rouges, retour à la vitesse de départ
 #
-# Matériel : ESP32 + bandeau NeoPixel 8 LED + 1 bouton poussoir
+# Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
 # Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
 
 from machine import Pin
 from neopixel import NeoPixel
 import time
 
-N = 8
+N = 16
 CIBLE = N // 2
-DELAI_DEPART = 140      # ms entre deux pas : plus petit = plus rapide
-DELAI_MIN = 40
+DELAI_DEPART = 90       # ms entre deux pas : plus petit = plus rapide
+DELAI_MIN = 25
 
 np = NeoPixel(Pin(18, Pin.OUT), N)
 bp = Pin(5, Pin.IN, Pin.PULL_UP)

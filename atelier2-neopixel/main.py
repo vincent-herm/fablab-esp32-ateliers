@@ -1,10 +1,10 @@
 # Atelier 02 — LED RGB et NeoPixel (WS2812)
 # Fablab Ardèche — MicroPython
 #
-# Contrôle un bandeau de 8 LED RGB WS2812.
+# Contrôle un bandeau de 16 LED RGB WS2812.
 # Les boutons changent l'animation en cours.
 #
-# Matériel : ESP32, bandeau NeoPixel 8 LED
+# Matériel : ESP32, bandeau NeoPixel 16 LED
 # Connexions : DATA → GPIO18, BP_A → GPIO0 (PULL_UP)
 
 from machine import Pin
@@ -12,7 +12,7 @@ from neopixel import NeoPixel
 import time, random
 
 # --- Configuration ---
-N       = 8        # nombre de LEDs
+N       = 16       # nombre de LEDs
 NP_PIN  = 18
 BP_PIN  = 0        # bouton BOOT (PULL_UP)
 
@@ -52,7 +52,7 @@ def animation_arc_en_ciel(tours=3):
     """Arc-en-ciel qui défile sur toutes les LEDs."""
     for _ in range(tours * 256):
         for i in range(N):
-            np[i] = roue((i * 32 + _) % 256)
+            np[i] = roue((i * 16 + _) % 256)
         np.write()
         time.sleep_ms(15)
         if bp.value() == 0:
