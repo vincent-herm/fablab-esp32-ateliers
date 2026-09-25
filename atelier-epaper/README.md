@@ -16,7 +16,7 @@ Le pilote de l'écran, `gdeh0213b73.py`, se trouve dans `../cours-exemples/epape
 | 20 min | Badge nominatif | `manip05_badge.py` |
 | 15 min | Compteur avec le bouton (GPIO39) | `manip06_compteur_bouton.py` |
 | 20 min | Écrire sur l'écran depuis un téléphone (serveur web) | `manip07_message_iphone.py` |
-| 5 min | Questions. Bonus : `bonus_pixel_art.py`, `../cours-exemples/epaper/payzac_fablab.py` | |
+| 5 min | Questions. Bonus : `../cours-exemples/epaper/payzac_fablab.py` | |
 
 Page du site : https://fablab.opentek.fr/ateliers/epaper/
 
