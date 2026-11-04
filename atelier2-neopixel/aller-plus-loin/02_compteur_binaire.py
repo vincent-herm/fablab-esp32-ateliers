@@ -7,7 +7,7 @@
 # Appui long (plus de 0,8 s) : remise à zéro.
 #
 # Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
-# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
+# Connexions : DATA → GPIO18, bouton BOOT (GPIO0, intégré à la carte)
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -16,7 +16,7 @@ import time
 N = 16
 BITS = 8                # nombre de bits comptés (8 → de 0 à 255)
 np = NeoPixel(Pin(18, Pin.OUT), N)
-bp = Pin(5, Pin.IN, Pin.PULL_UP)
+bp = Pin(0, Pin.IN, Pin.PULL_UP)
 
 
 def afficher(valeur):

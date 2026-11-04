@@ -6,7 +6,7 @@
 #   - appui LONG (plus de 0,6 s) : intensité maximale suivante (25 %, 50 %, 100 %)
 #
 # Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
-# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
+# Connexions : DATA → GPIO18, bouton BOOT (GPIO0, intégré à la carte)
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -14,7 +14,7 @@ import time
 
 N = 16
 np = NeoPixel(Pin(18, Pin.OUT), N)
-bp = Pin(5, Pin.IN, Pin.PULL_UP)
+bp = Pin(0, Pin.IN, Pin.PULL_UP)
 
 COULEURS = [
     ("orange", (255, 80, 0)),

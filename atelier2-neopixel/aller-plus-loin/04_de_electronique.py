@@ -6,7 +6,7 @@
 # le résultat : le nombre de LEDs allumées, de 1 à 6.
 #
 # Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
-# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
+# Connexions : DATA → GPIO18, bouton BOOT (GPIO0, intégré à la carte)
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -15,7 +15,7 @@ import random
 
 N = 16
 np = NeoPixel(Pin(18, Pin.OUT), N)
-bp = Pin(5, Pin.IN, Pin.PULL_UP)
+bp = Pin(0, Pin.IN, Pin.PULL_UP)
 
 
 def afficher(valeur, couleur):

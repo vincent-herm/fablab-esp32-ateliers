@@ -8,7 +8,7 @@
 #   - raté  : éclairs rouges, retour à la vitesse de départ
 #
 # Matériel : ESP32 + bandeau NeoPixel 16 LED + 1 bouton poussoir
-# Connexions : DATA → GPIO18, bouton (BP) entre GPIO5 et GND
+# Connexions : DATA → GPIO18, bouton BOOT (GPIO0, intégré à la carte)
 
 from machine import Pin
 from neopixel import NeoPixel
@@ -20,7 +20,7 @@ DELAI_DEPART = 90       # ms entre deux pas : plus petit = plus rapide
 DELAI_MIN = 25
 
 np = NeoPixel(Pin(18, Pin.OUT), N)
-bp = Pin(5, Pin.IN, Pin.PULL_UP)
+bp = Pin(0, Pin.IN, Pin.PULL_UP)
 
 
 def tout_eteindre():
