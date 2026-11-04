@@ -15,7 +15,7 @@ epd = init_epd(rotation=ROTATION_0)   # portrait : 128 pixels de large, 250 de h
 
 epd.fill(0)                           # tout l'écran en blanc
 epd.text("Bonjour", 10, 10, 1)        # texte noir, en haut à gauche
-epd.text("Fablab Payzac", 10, 30, 1)
+epd.text("Fablab Polinno", 10, 30, 1)
 epd.rect(0, 0, epd.width, epd.height, 1)   # un cadre autour de l'écran
 
 debut = time.ticks_ms()

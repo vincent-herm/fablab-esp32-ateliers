@@ -13,7 +13,7 @@ from gdeh0213b73 import init_epd, ROTATION_90
 import framebuf
 
 PRENOM = "Camille"                    # ASCII seulement : pas d'accents !
-LIGNE2 = "Fablab Payzac"
+LIGNE2 = "Fablab Polinno"
 
 
 def big_text(epd, s, x, y, scale=2, c=1):
